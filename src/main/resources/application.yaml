@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: magic
+  datasource:
+    password: pd
+    url: jdbc:postgresql://localhost:5432/magic
+    username: pd
+  jpa:
+    default-schema: magic
+
+server:
+  port: 8086
+
+# Optional: override TTG API base URL (default: https://5e14.ttg.club/api/v1)
+# ttg:
+#   api:
+#     base-url: https://5e14.ttg.club/api/v1

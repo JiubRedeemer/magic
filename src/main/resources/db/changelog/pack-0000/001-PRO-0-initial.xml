@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="PRO-0:Pre-Init:01.02.2026" author="jiubredeemer">
+        <sql>DROP SCHEMA IF EXISTS magic cascade</sql>
+    </changeSet>
+
+    <changeSet id="PRO-0:Init:01.02.2026" author="jiubredeemer">
+        <sql>CREATE SCHEMA magic</sql>
+    </changeSet>
+
+    <changeSet id="PRO-0:Magic:01.02.2026" author="jiubredeemer">
+        <sqlFile path="001-PRO-0-initial.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    </changeSet>
+
+</databaseChangeLog>

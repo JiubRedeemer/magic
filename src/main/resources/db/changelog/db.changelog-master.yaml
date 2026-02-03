@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: pack-0000/include.xml
+      relativeToChangelogFile: true

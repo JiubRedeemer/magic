@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="PRO-0:TtgSlug:01.02.2026" author="jiubredeemer">
+        <addColumn tableName="spell" schemaName="magic">
+            <column name="ttg_slug" type="varchar(255)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="spell" schemaName="magic">
+            <column name="description" type="text"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
