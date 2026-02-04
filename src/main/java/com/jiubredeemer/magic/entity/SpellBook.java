@@ -9,7 +9,6 @@ import java.util.UUID;
 @Table(name = "spell_book", schema = "magic")
 @Getter
 @Setter
-@RequiredArgsConstructor
 @AllArgsConstructor
 @NoArgsConstructor
 public class SpellBook {

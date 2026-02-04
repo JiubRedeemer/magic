@@ -11,7 +11,6 @@ import java.util.Map;
 @Table(name = "spell", schema = "magic")
 @Getter
 @Setter
-@RequiredArgsConstructor
 @AllArgsConstructor
 @NoArgsConstructor
 public class Spell {

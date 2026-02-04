@@ -31,6 +31,11 @@ public class SpellBookDtoMapper {
         return entity;
     }
 
+    public SpellBook updateEntity(SpellBookDto model, SpellBook entity) {
+        BeanUtils.copyProperties(model, entity, "id");
+        return entity;
+    }
+
     public List<SpellBook> toEntity(List<SpellBookDto> models) {
         return models.stream().map(this::toEntity).toList();
     }

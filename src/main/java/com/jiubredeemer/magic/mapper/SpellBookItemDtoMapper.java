@@ -30,6 +30,11 @@ public class SpellBookItemDtoMapper {
         return entity;
     }
 
+    public SpellBookItem updateEntity(SpellBookItemDto model, SpellBookItem entity) {
+        BeanUtils.copyProperties(model, entity, "id");
+        return entity;
+    }
+
     public List<SpellBookItem> toEntity(List<SpellBookItemDto> models) {
         return models.stream().map(this::toEntity).toList();
     }

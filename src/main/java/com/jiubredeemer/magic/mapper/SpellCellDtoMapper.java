@@ -31,6 +31,11 @@ public class SpellCellDtoMapper {
         return entity;
     }
 
+    public SpellCell updateEntity(SpellCellDto model, SpellCell entity) {
+        BeanUtils.copyProperties(model, entity, "id");
+        return entity;
+    }
+
     public List<SpellCell> toEntity(List<SpellCellDto> models) {
         return models.stream().map(this::toEntity).toList();
     }

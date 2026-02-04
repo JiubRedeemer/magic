@@ -1,0 +1,679 @@
+openapi: 3.0.3
+info:
+  title: Magic API
+  description: API for spell books, spells, spell cells, and spell import
+  version: 0.0.1-SNAPSHOT
+
+servers:
+  - url: /api
+    description: API base path (prepend your server URL)
+
+paths:
+  /spells:
+    get:
+      summary: List all spells
+      operationId: listSpells
+      tags:
+        - Spells
+      responses:
+        '200':
+          description: List of spells
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpellDto'
+    post:
+      summary: Create a spell
+      operationId: createSpell
+      tags:
+        - Spells
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellDto'
+      responses:
+        '200':
+          description: Created spell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellDto'
+
+  /spells/import:
+    post:
+      summary: Import spells from TTG
+      operationId: importSpells
+      tags:
+        - Spells
+      responses:
+        '200':
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+
+  /spells/{id}:
+    get:
+      summary: Get spell by ID
+      operationId: getSpellById
+      tags:
+        - Spells
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Spell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellDto'
+    put:
+      summary: Update a spell
+      operationId: updateSpell
+      tags:
+        - Spells
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellDto'
+      responses:
+        '200':
+          description: Updated spell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellDto'
+    delete:
+      summary: Delete a spell
+      operationId: deleteSpell
+      tags:
+        - Spells
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No content
+
+  /spell-books:
+    get:
+      summary: List all spell books
+      operationId: listSpellBooks
+      tags:
+        - Spell Books
+      responses:
+        '200':
+          description: List of spell books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpellBookDto'
+    post:
+      summary: Create a spell book
+      operationId: createSpellBook
+      tags:
+        - Spell Books
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellBookDto'
+      responses:
+        '200':
+          description: Created spell book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+
+  /spell-books/by-room-character:
+    get:
+      summary: Get spell book by room and character
+      operationId: getSpellBookByRoomAndCharacter
+      tags:
+        - Spell Books
+      parameters:
+        - name: roomId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: characterId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Spell book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+
+  /spell-books/{spellBookId}:
+    get:
+      summary: Get spell book by ID
+      operationId: getSpellBookById
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Spell book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+    put:
+      summary: Update a spell book
+      operationId: updateSpellBook
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellBookDto'
+      responses:
+        '200':
+          description: Updated spell book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+    delete:
+      summary: Delete a spell book
+      operationId: deleteSpellBook
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No content
+
+  /spell-books/{spellBookId}/spells/{spellId}:
+    post:
+      summary: Add spell to spell book
+      operationId: addSpellToBook
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: spellId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated spell book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+    delete:
+      summary: Remove spell from spell book
+      operationId: removeSpellFromBook
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: spellId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated spell book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+
+  /spell-books/{spellBookId}/spells/{spellId}/in-use:
+    patch:
+      summary: Set spell in-use flag in spell book
+      operationId: setSpellInUse
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: spellId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: inUse
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Updated spell book item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookItemDto'
+
+  /spell-book-items:
+    get:
+      summary: List all spell book items
+      operationId: listSpellBookItems
+      tags:
+        - Spell Book Items
+      responses:
+        '200':
+          description: List of spell book items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpellBookItemDto'
+    post:
+      summary: Create a spell book item
+      operationId: createSpellBookItem
+      tags:
+        - Spell Book Items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellBookItemDto'
+      responses:
+        '200':
+          description: Created spell book item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookItemDto'
+
+  /spell-book-items/{id}:
+    get:
+      summary: Get spell book item by ID
+      operationId: getSpellBookItemById
+      tags:
+        - Spell Book Items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Spell book item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookItemDto'
+    put:
+      summary: Update a spell book item
+      operationId: updateSpellBookItem
+      tags:
+        - Spell Book Items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellBookItemDto'
+      responses:
+        '200':
+          description: Updated spell book item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookItemDto'
+    delete:
+      summary: Delete a spell book item
+      operationId: deleteSpellBookItem
+      tags:
+        - Spell Book Items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No content
+
+  /spell-book-items/{id}/in-use:
+    patch:
+      summary: Set spell book item in-use flag
+      operationId: setSpellBookItemInUse
+      tags:
+        - Spell Book Items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: inUse
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Updated spell book item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookItemDto'
+
+  /spell-cells:
+    get:
+      summary: List all spell cells
+      operationId: listSpellCells
+      tags:
+        - Spell Cells
+      responses:
+        '200':
+          description: List of spell cells
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpellCellDto'
+    post:
+      summary: Create a spell cell
+      operationId: createSpellCell
+      tags:
+        - Spell Cells
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellCellDto'
+      responses:
+        '200':
+          description: Created spell cell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellCellDto'
+
+  /spell-cells/{id}:
+    get:
+      summary: Get spell cell by ID
+      operationId: getSpellCellById
+      tags:
+        - Spell Cells
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Spell cell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellCellDto'
+    put:
+      summary: Update a spell cell
+      operationId: updateSpellCell
+      tags:
+        - Spell Cells
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellCellDto'
+      responses:
+        '200':
+          description: Updated spell cell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellCellDto'
+    delete:
+      summary: Delete a spell cell
+      operationId: deleteSpellCell
+      tags:
+        - Spell Cells
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No content
+
+components:
+  schemas:
+    SpellDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: object
+          additionalProperties:
+            type: string
+          description: Localized spell names (locale -> name)
+        level:
+          type: string
+        spellClass:
+          type: string
+        school:
+          type: string
+        ritual:
+          type: boolean
+        customization:
+          type: boolean
+        damageType:
+          type: string
+        healType:
+          type: string
+        savingThrow:
+          type: string
+        useTime:
+          type: string
+        distance:
+          type: string
+        duration:
+          type: string
+        components:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        imgUrl:
+          type: string
+
+    SpellBookDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        characterId:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+        manaMax:
+          type: integer
+          format: int64
+        manaCurrent:
+          type: integer
+          format: int64
+        spells:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpellBookItemDto'
+        spellCells:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SpellCellDto'
+          description: Map of spell level to spell cell (keys as strings)
+
+    SpellBookItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        spellBookId:
+          type: string
+          format: uuid
+        spellId:
+          type: string
+          format: uuid
+        inUse:
+          type: boolean
+        spell:
+          $ref: '#/components/schemas/SpellDto'
+
+    SpellCellDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        spellBookId:
+          type: string
+          format: uuid
+        level:
+          type: integer
+          format: int64
+        maxCount:
+          type: integer
+          format: int64
+        currentCount:
+          type: integer
+          format: int64
+        refillRestType:
+          $ref: '#/components/schemas/ChargesRefillEnum'
+
+    ChargesRefillEnum:
+      type: string
+      enum:
+        - SHORT_REST
+        - LONG_REST
+
+    ImportResult:
+      type: object
+      required:
+        - total
+        - imported
+        - updated
+        - failed
+      properties:
+        total:
+          type: integer
+          description: Total number of spells processed
+        imported:
+          type: integer
+          description: Number of newly imported spells
+        updated:
+          type: integer
+          description: Number of updated spells
+        failed:
+          type: integer
+          description: Number of failed imports
