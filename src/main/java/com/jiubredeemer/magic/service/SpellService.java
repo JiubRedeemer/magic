@@ -7,6 +7,7 @@ import com.jiubredeemer.magic.repository.SpellRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,10 @@ public class SpellService {
 
     public SpellDto create(SpellDto dto) {
         Spell entity = spellDtoMapper.toEntity(dto);
+        entity.setCreatedAt(Instant.now());
+        if (dto.getCharacterId() != null) {
+            entity.setCreatedBy(dto.getCharacterId().toString());
+        }
         Spell saved = spellRepository.save(entity);
         return spellDtoMapper.toDto(saved);
     }
@@ -28,6 +33,20 @@ public class SpellService {
 
     public List<SpellDto> list() {
         return spellDtoMapper.toDto(spellRepository.findAll());
+    }
+
+    /**
+     * List spells available to the specified class (e.g. BARD, WIZARD).
+     */
+    public List<SpellDto> listByClass(String spellClass) {
+        String code = spellClass == null ? "" : spellClass.trim().toUpperCase();
+        if (code.isEmpty()) {
+            return List.of();
+        }
+        String codePrefix = code + ", %";
+        String codeSuffix = "%, " + code;
+        String codeMiddle = "%, " + code + ", %";
+        return spellDtoMapper.toDto(spellRepository.findBySpellClass(code, codePrefix, codeSuffix, codeMiddle));
     }
 
     public SpellDto update(UUID id, SpellDto dto) {

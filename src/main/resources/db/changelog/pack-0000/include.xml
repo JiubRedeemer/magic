@@ -10,4 +10,6 @@
     <include file="001-PRO-0-initial.xml" relativeToChangelogFile="true"/>
     <include file="002-PRO-0-ttg-slug.xml" relativeToChangelogFile="true"/>
     <include file="003-PRO-68-add-character-spells.xml" relativeToChangelogFile="true"/>
+    <include file="004-PRO-0-spell-class-codes.xml" relativeToChangelogFile="true"/>
+    <include file="005-PRO-0-created-by.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -1,7 +1,9 @@
 package com.jiubredeemer.magic.controller;
 
+import com.jiubredeemer.magic.dto.spellbook.RefillRestRequest;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookItemDto;
+import com.jiubredeemer.magic.dto.spellbook.SpellCellDto;
 import com.jiubredeemer.magic.service.SpellBookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -64,5 +66,30 @@ public class SpellBookController {
             @RequestParam boolean inUse
     ) {
         return spellBookService.setSpellInUse(spellBookId, spellId, inUse);
+    }
+
+    @PostMapping("/{spellBookId}/spell-cells")
+    public SpellCellDto createSpellCell(
+            @PathVariable UUID spellBookId,
+            @RequestBody SpellCellDto dto
+    ) {
+        return spellBookService.createSpellCellForBook(spellBookId, dto);
+    }
+
+    @PostMapping("/{spellBookId}/rest")
+    public SpellBookDto refillRest(
+            @PathVariable UUID spellBookId,
+            @RequestBody RefillRestRequest request
+    ) {
+        return spellBookService.refillRest(spellBookId, request.getRestType());
+    }
+
+    @PostMapping("/by-room-character/rest")
+    public SpellBookDto refillRestByCharacter(
+            @RequestParam UUID roomId,
+            @RequestParam UUID characterId,
+            @RequestParam com.jiubredeemer.magic.entity.ChargesRefillEnum restType
+    ) {
+        return spellBookService.refillRestByRoomAndCharacter(roomId, characterId, restType);
     }
 }

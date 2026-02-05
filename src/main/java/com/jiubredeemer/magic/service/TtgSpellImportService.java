@@ -58,6 +58,9 @@ public class TtgSpellImportService {
                 mapDetailToSpell(detail, spell);
 
                 boolean isNew = spell.getId() == null;
+                if (isNew) {
+                    spell.setCreatedBy("TTG");
+                }
                 spellRepository.save(spell);
 
                 if (isNew) {
@@ -110,12 +113,43 @@ public class TtgSpellImportService {
         spell.setTtgSlug(extractSlug(detail.url()));
     }
 
+    /** Maps display names (e.g. Russian) from TTG to coded spell class designations. */
+    private static final Map<String, String> SPELL_CLASS_NAME_TO_CODE = Map.ofEntries(
+            Map.entry("Бард", "BARD"),
+            Map.entry("Волшебник", "WIZARD"),
+            Map.entry("Друид", "DRUID"),
+            Map.entry("Жрец", "CLERIC"),
+            Map.entry("Изобретатель", "ARTIFICER"),
+            Map.entry("Колдун", "WARLOCK"),
+            Map.entry("Магус", "WIZARD"),
+            Map.entry("Паладин", "PALADIN"),
+            Map.entry("Следопыт", "RANGER"),
+            Map.entry("Чародей", "SORCERER"),
+            Map.entry("Шаман", "DRUID"),
+            Map.entry("BARD", "BARD"),
+            Map.entry("BARBARIAN", "BARBARIAN"),
+            Map.entry("FIGHTER", "FIGHTER"),
+            Map.entry("WIZARD", "WIZARD"),
+            Map.entry("DRUID", "DRUID"),
+            Map.entry("CLERIC", "CLERIC"),
+            Map.entry("ARTIFICER", "ARTIFICER"),
+            Map.entry("WARLOCK", "WARLOCK"),
+            Map.entry("MONK", "MONK"),
+            Map.entry("PALADIN", "PALADIN"),
+            Map.entry("ROGUE", "ROGUE"),
+            Map.entry("RANGER", "RANGER"),
+            Map.entry("SORCERER", "SORCERER")
+    );
+
     private String formatClasses(List<com.jiubredeemer.magic.dto.ttg.TtgSpellClass> classes) {
         if (classes == null || classes.isEmpty()) {
             return "";
         }
         return classes.stream()
                 .map(com.jiubredeemer.magic.dto.ttg.TtgSpellClass::name)
+                .map(name -> name != null ? SPELL_CLASS_NAME_TO_CODE.getOrDefault(name.trim(), name) : name)
+                .filter(name -> name != null && !name.isBlank())
+                .distinct()
                 .collect(Collectors.joining(", "));
     }
 

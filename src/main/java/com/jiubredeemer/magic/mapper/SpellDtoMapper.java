@@ -32,7 +32,7 @@ public class SpellDtoMapper {
     }
 
     public Spell updateEntity(SpellDto model, Spell entity) {
-        BeanUtils.copyProperties(model, entity, "id");
+        BeanUtils.copyProperties(model, entity, "id", "createdBy");
         return entity;
     }
 

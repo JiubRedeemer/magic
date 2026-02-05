@@ -64,6 +64,9 @@ public class Spell {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "created_by")
+    private String createdBy;
+
     @Column(name = "img_url", nullable = true)
     private String imgUrl;
 }

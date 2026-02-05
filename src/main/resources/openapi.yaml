@@ -11,10 +11,31 @@ servers:
 paths:
   /spells:
     get:
-      summary: List all spells
+      summary: List all spells (optionally filter by class)
       operationId: listSpells
       tags:
         - Spells
+      parameters:
+        - name: spellClass
+          in: query
+          required: false
+          description: Filter spells available to this class (e.g. BARD, WIZARD, DRUID)
+          schema:
+            type: string
+            enum:
+              - BARD
+              - BARBARIAN
+              - FIGHTER
+              - WIZARD
+              - DRUID
+              - CLERIC
+              - ARTIFICER
+              - WARLOCK
+              - MONK
+              - PALADIN
+              - ROGUE
+              - RANGER
+              - SORCERER
       responses:
         '200':
           description: List of spells
@@ -324,6 +345,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/SpellBookItemDto'
 
+  /spell-books/{spellBookId}/spell-cells:
+    post:
+      summary: Create a new spell cell for the spell book
+      operationId: createSpellCellForBook
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpellCellDto'
+      responses:
+        '200':
+          description: Created spell cell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellCellDto'
+
+  /spell-books/{spellBookId}/rest:
+    post:
+      summary: Refill spell cells by rest (sets currentCount = maxCount for cells matching rest type)
+      operationId: refillRest
+      tags:
+        - Spell Books
+      parameters:
+        - name: spellBookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefillRestRequest'
+      responses:
+        '200':
+          description: Updated spell book with refilled cells
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+
+  /spell-books/by-room-character/rest:
+    post:
+      summary: Refill spell cells of character spell book by rest (room + character)
+      operationId: refillRestByCharacter
+      tags:
+        - Spell Books
+      parameters:
+        - name: roomId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: characterId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: restType
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ChargesRefillEnum'
+      responses:
+        '200':
+          description: Updated spell book with refilled cells
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellBookDto'
+
   /spell-book-items:
     get:
       summary: List all spell book items
@@ -500,7 +607,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SpellCellDto'
     put:
-      summary: Update a spell cell
+      summary: Update a spell cell (e.g. maxCount / currentCount)
       operationId: updateSpellCell
       tags:
         - Spell Cells
@@ -539,6 +646,29 @@ paths:
       responses:
         '204':
           description: No content
+
+  /spell-cells/{id}/use:
+    post:
+      summary: Use one charge from spell cell (currentCount - 1)
+      operationId: useSpellCell
+      tags:
+        - Spell Cells
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated spell cell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellCellDto'
+        '400':
+          description: Spell cell has no charges left
 
 components:
   schemas:
@@ -582,6 +712,13 @@ components:
         createdAt:
           type: string
           format: date-time
+        characterId:
+          type: string
+          format: uuid
+          description: When creating a spell, set to the character ID; stored as createdBy
+        createdBy:
+          type: string
+          description: Who created the spell (e.g. TTG for imported, or character ID for user-created)
         imgUrl:
           type: string
 
@@ -656,6 +793,15 @@ components:
       enum:
         - SHORT_REST
         - LONG_REST
+        - REST
+
+    RefillRestRequest:
+      type: object
+      required:
+        - restType
+      properties:
+        restType:
+          $ref: '#/components/schemas/ChargesRefillEnum'
 
     ImportResult:
       type: object

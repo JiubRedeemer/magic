@@ -35,6 +35,11 @@ public class SpellCellController {
         return spellCellService.update(id, dto);
     }
 
+    @PostMapping("/{id}/use")
+    public SpellCellDto use(@PathVariable UUID id) {
+        return spellCellService.use(id);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         spellCellService.delete(id);

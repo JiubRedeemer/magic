@@ -5,7 +5,9 @@ import com.jiubredeemer.magic.entity.SpellCell;
 import com.jiubredeemer.magic.mapper.SpellCellDtoMapper;
 import com.jiubredeemer.magic.repository.SpellCellRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,5 +45,22 @@ public class SpellCellService {
 
     public void delete(UUID id) {
         spellCellRepository.deleteById(id);
+    }
+
+    /**
+     * Use one charge from the spell cell (currentCount - 1).
+     *
+     * @return updated spell cell
+     * @throws IllegalStateException if currentCount is already 0 or null
+     */
+    public SpellCellDto use(UUID id) {
+        SpellCell entity = spellCellRepository.findById(id).orElseThrow();
+        long current = entity.getCurrentCount() != null ? entity.getCurrentCount() : 0;
+        if (current <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Spell cell has no charges left");
+        }
+        entity.setCurrentCount(current - 1);
+        SpellCell saved = spellCellRepository.save(entity);
+        return spellCellDtoMapper.toDto(saved);
     }
 }

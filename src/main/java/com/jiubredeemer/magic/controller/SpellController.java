@@ -26,7 +26,10 @@ public class SpellController {
     }
 
     @GetMapping
-    public List<SpellDto> list() {
+    public List<SpellDto> list(@RequestParam(required = false) String spellClass) {
+        if (spellClass != null && !spellClass.isBlank()) {
+            return spellService.listByClass(spellClass);
+        }
         return spellService.list();
     }
 

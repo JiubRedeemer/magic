@@ -23,5 +23,8 @@ public class SpellDto {
     private String components;
     private String description;
     private Instant createdAt;
+    /** Set when creating a spell; stored as createdBy. */
+    private java.util.UUID characterId;
+    private String createdBy;
     private String imgUrl;
 }

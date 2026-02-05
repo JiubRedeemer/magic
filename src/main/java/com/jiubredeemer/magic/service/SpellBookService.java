@@ -3,6 +3,7 @@ package com.jiubredeemer.magic.service;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookItemDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellCellDto;
+import com.jiubredeemer.magic.entity.ChargesRefillEnum;
 import com.jiubredeemer.magic.entity.SpellBook;
 import com.jiubredeemer.magic.entity.SpellBookItem;
 import com.jiubredeemer.magic.entity.SpellCell;
@@ -15,7 +16,9 @@ import com.jiubredeemer.magic.repository.SpellBookRepository;
 import com.jiubredeemer.magic.repository.SpellCellRepository;
 import com.jiubredeemer.magic.repository.SpellRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -116,6 +119,40 @@ public class SpellBookService {
         item.setInUse(inUse);
         SpellBookItem saved = spellBookItemRepository.save(item);
         return enrichSpellBookItemDto(saved);
+    }
+
+    public SpellCellDto createSpellCellForBook(UUID spellBookId, SpellCellDto dto) {
+        spellBookRepository.findById(spellBookId).orElseThrow();
+        SpellCell entity = spellCellDtoMapper.toEntity(dto);
+        entity.setSpellBookId(spellBookId);
+        SpellCell saved = spellCellRepository.save(entity);
+        return spellCellDtoMapper.toDto(saved);
+    }
+
+    /**
+     * Refill spell cells of the spellbook that match the given rest type (set currentCount = maxCount).
+     */
+    public SpellBookDto refillRest(UUID spellBookId, ChargesRefillEnum restType) {
+        if (restType == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "restType is required");
+        }
+        SpellBook spellBook = spellBookRepository.findById(spellBookId).orElseThrow();
+        List<SpellCell> cells = spellCellRepository.findAllBySpellBookId(spellBookId);
+        for (SpellCell cell : cells) {
+            if (cell.getRefillRestType() == restType && cell.getMaxCount() != null) {
+                cell.setCurrentCount(cell.getMaxCount());
+                spellCellRepository.save(cell);
+            }
+        }
+        return buildSpellBookDto(spellBook);
+    }
+
+    /**
+     * Refill spell cells of the character's spellbook in the given room (by rest type).
+     */
+    public SpellBookDto refillRestByRoomAndCharacter(UUID roomId, UUID characterId, ChargesRefillEnum restType) {
+        SpellBook spellBook = spellBookRepository.findByRoomIdAndCharacterId(roomId, characterId).orElseThrow();
+        return refillRest(spellBook.getId(), restType);
     }
 
     private SpellBookDto buildSpellBookDto(SpellBook spellBook) {
