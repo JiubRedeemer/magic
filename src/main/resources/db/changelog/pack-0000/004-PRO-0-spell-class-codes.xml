@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <!-- Replace Russian spell class names with coded designations in magic.spell.class -->
+    <changeSet id="PRO-0:SpellClassCodes:04.02.2026" author="jiubredeemer">
+        <sql>
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Бард', 'BARD');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Волшебник', 'WIZARD');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Друид', 'DRUID');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Жрец', 'CLERIC');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Изобретатель', 'ARTIFICER');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Колдун', 'WARLOCK');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Магус', 'WIZARD');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Паладин', 'PALADIN');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Следопыт', 'RANGER');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Чародей', 'SORCERER');
+            UPDATE magic.spell SET "class" = REPLACE("class", 'Шаман', 'DRUID');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

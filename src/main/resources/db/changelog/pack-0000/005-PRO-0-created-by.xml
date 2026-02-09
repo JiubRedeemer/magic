@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="PRO-0:CreatedBy:05.02.2026" author="jiubredeemer">
+        <addColumn tableName="spell" schemaName="magic">
+            <column name="created_by" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <sql>UPDATE magic.spell SET created_by = 'TTG' WHERE ttg_slug IS NOT NULL</sql>
+    </changeSet>
+</databaseChangeLog>
