@@ -53,6 +53,7 @@ public class SpellService {
         Spell entity = spellRepository.findById(id).orElseThrow();
         spellDtoMapper.updateEntity(dto, entity);
         entity.setId(id);
+        entity.setCreatedAt(Instant.now());
         Spell saved = spellRepository.save(entity);
         return spellDtoMapper.toDto(saved);
     }
