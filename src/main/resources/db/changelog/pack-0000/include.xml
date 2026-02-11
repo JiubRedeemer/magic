@@ -12,4 +12,5 @@
     <include file="003-PRO-68-add-character-spells.xml" relativeToChangelogFile="true"/>
     <include file="004-PRO-0-spell-class-codes.xml" relativeToChangelogFile="true"/>
     <include file="005-PRO-0-created-by.xml" relativeToChangelogFile="true"/>
+    <include file="006-PRO-81-nullable-class.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

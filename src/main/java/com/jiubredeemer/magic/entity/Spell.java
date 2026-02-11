@@ -26,7 +26,7 @@ public class Spell {
     @Column(nullable = false)
     private String level;
 
-    @Column(name = "\"class\"", nullable = false)
+    @Column(name = "\"class\"", nullable = true)
     private String spellClass;
 
     @Column(nullable = false)
