@@ -3,6 +3,7 @@ package com.jiubredeemer.magic.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -19,4 +20,6 @@ public class SpellBook {
     private UUID roomId;
     private Long manaMax;
     private Long manaCurrent;
+    private LocalDateTime deletedAt;
+
 }

@@ -18,6 +18,11 @@ import java.util.UUID;
 public class SpellBookController {
     private final SpellBookService spellBookService;
 
+    @DeleteMapping("/{roomId}/logical")
+    public void deleteLogical(@PathVariable() UUID roomId) {
+        spellBookService.deleteLogical(roomId);
+    }
+
     @PostMapping
     public SpellBookDto create(@RequestBody SpellBookDto dto) {
         return spellBookService.create(dto);

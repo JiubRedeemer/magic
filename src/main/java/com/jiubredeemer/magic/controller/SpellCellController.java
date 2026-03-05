@@ -45,4 +45,10 @@ public class SpellCellController {
         spellCellService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/arina")
+    public ResponseEntity<String> ncvjk() {
+        return ResponseEntity.ok(spellCellService.nahuevertimArina());
+    }
+
 }
