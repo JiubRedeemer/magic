@@ -7,6 +7,7 @@ spring:
     username: pd
   jpa:
     default-schema: magic
+    open-in-view: false
 
 server:
   port: 8086
