@@ -1,0 +1,1 @@
+ALTER TABLE magic.spell_book ADD COLUMN deleted_at timestamp NULL;

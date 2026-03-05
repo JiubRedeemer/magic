@@ -63,4 +63,8 @@ public class SpellCellService {
         SpellCell saved = spellCellRepository.save(entity);
         return spellCellDtoMapper.toDto(saved);
     }
+
+    public String nahuevertimArina() {
+        return "люблю Арину";
+    }
 }
