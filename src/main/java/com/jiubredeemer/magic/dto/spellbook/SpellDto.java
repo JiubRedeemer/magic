@@ -21,6 +21,7 @@ public class SpellDto {
     private String distance;
     private String duration;
     private String components;
+    private String materialComponents;
     private String description;
     private Instant createdAt;
     /** Set when creating a spell; stored as createdBy. */

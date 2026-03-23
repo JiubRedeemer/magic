@@ -707,6 +707,8 @@ components:
           type: string
         components:
           type: string
+        materialComponents:
+          type: string
         description:
           type: string
         createdAt:

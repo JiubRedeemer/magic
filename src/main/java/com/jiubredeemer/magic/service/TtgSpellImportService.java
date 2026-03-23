@@ -8,6 +8,7 @@ import com.jiubredeemer.magic.entity.Spell;
 import com.jiubredeemer.magic.repository.SpellRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +24,13 @@ public class TtgSpellImportService {
 
     private final TtgApiClient ttgApiClient;
     private final SpellRepository spellRepository;
+
+    /**
+     * Extra pause between TTG spell detail requests (helps avoid 429).
+     * Set to e.g. 150-300 ms if TTG rate-limit is strict.
+     */
+    @Value("${ttg.api.detail-request-delay-ms:0}")
+    private long detailRequestDelayMs;
 
     public TtgSpellImportService(TtgApiClient ttgApiClient, SpellRepository spellRepository) {
         this.ttgApiClient = ttgApiClient;
@@ -54,6 +62,7 @@ public class TtgSpellImportService {
                 Spell spell = spellRepository.findByTtgSlug(slug)
                         .orElse(new Spell());
 
+                sleepBeforeTtgDetailRequest();
                 TtgSpellDetail detail = ttgApiClient.fetchSpellDetail(slug);
                 mapDetailToSpell(detail, spell);
 
@@ -109,8 +118,21 @@ public class TtgSpellImportService {
         spell.setDistance(detail.range());
         spell.setDuration(detail.duration());
         spell.setComponents(formatComponents(detail.components()));
+        spell.setMaterialComponents(formatMaterialComponents(detail.components()));
         spell.setDescription(detail.description());
         spell.setTtgSlug(extractSlug(detail.url()));
+    }
+
+    private void sleepBeforeTtgDetailRequest() {
+        if (detailRequestDelayMs <= 0) {
+            return;
+        }
+        try {
+            Thread.sleep(detailRequestDelayMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting before TTG request", e);
+        }
     }
 
     /** Maps display names (e.g. Russian) from TTG to coded spell class designations. */
@@ -168,6 +190,32 @@ public class TtgSpellImportService {
             sb.append("M");
         }
         return sb.isEmpty() ? null : sb.toString();
+    }
+
+    /**
+     * TTG sometimes represents material components as a string description and sometimes as a boolean
+     * (\"has material components\"). Persist that detail in a separate column.
+     */
+    private String formatMaterialComponents(TtgComponents components) {
+        if (components == null) {
+            return null;
+        }
+        Object m = components.m();
+        if (m == null) {
+            return null;
+        }
+        if (m instanceof String s) {
+            if (s.isBlank()) {
+                return null;
+            }
+            return s.trim();
+        }
+        if (m instanceof Boolean b) {
+            // If TTG only gives a boolean, we at least store an indicator ("M").
+            return b ? "M" : null;
+        }
+        String asString = m.toString();
+        return asString.isBlank() ? null : asString.trim();
     }
 
     private boolean hasMaterialComponent(Object m) {
