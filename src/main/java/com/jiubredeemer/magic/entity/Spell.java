@@ -55,6 +55,9 @@ public class Spell {
 
     private String components;
 
+    @Column(name = "material_components", columnDefinition = "text")
+    private String materialComponents;
+
     @Column(columnDefinition = "text")
     private String description;
 
