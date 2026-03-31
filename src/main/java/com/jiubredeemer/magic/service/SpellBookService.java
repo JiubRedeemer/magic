@@ -3,19 +3,14 @@ package com.jiubredeemer.magic.service;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookItemDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellCellDto;
-import com.jiubredeemer.magic.entity.ChargesRefillEnum;
-import com.jiubredeemer.magic.entity.SpellBook;
-import com.jiubredeemer.magic.entity.SpellBookItem;
-import com.jiubredeemer.magic.entity.SpellCell;
+import com.jiubredeemer.magic.entity.*;
 import com.jiubredeemer.magic.mapper.SpellBookDtoMapper;
 import com.jiubredeemer.magic.mapper.SpellBookItemDtoMapper;
 import com.jiubredeemer.magic.mapper.SpellCellDtoMapper;
 import com.jiubredeemer.magic.mapper.SpellDtoMapper;
-import com.jiubredeemer.magic.repository.SpellBookItemRepository;
-import com.jiubredeemer.magic.repository.SpellBookRepository;
-import com.jiubredeemer.magic.repository.SpellCellRepository;
-import com.jiubredeemer.magic.repository.SpellRepository;
+import com.jiubredeemer.magic.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,6 +34,7 @@ public class SpellBookService {
     private final SpellCellDtoMapper spellCellDtoMapper;
     private final SpellRepository spellRepository;
     private final SpellDtoMapper spellDtoMapper;
+    private final SpellAiRepository spellAiRepository;
 
     public SpellBookDto create(SpellBookDto dto) {
         SpellBook entity = spellBookDtoMapper.toEntity(dto);
@@ -178,10 +174,17 @@ public class SpellBookService {
     private SpellBookItemDto enrichSpellBookItemDto(SpellBookItem item) {
         SpellBookItemDto dto = spellBookItemDtoMapper.toDto(item);
         if (item.getSpellId() != null) {
-            spellRepository.findById(item.getSpellId())
-                    .ifPresent(spell -> dto.setSpell(spellDtoMapper.toDto(spell)));
+            Spell spell = spellAiRepository.findById(item.getSpellId()).map(this::toSpell)
+                    .orElse(spellRepository.findById(item.getSpellId()).orElseThrow());
+            dto.setSpell(spellDtoMapper.toDto(spell));
         }
         return dto;
+    }
+
+    private Spell toSpell(SpellAi source) {
+        Spell target = new Spell();
+        BeanUtils.copyProperties(source, target);
+        return target;
     }
 
     public void deleteLogical(UUID roomId) {
