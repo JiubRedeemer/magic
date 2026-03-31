@@ -1,6 +1,7 @@
 package com.jiubredeemer.magic.controller;
 
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
+import com.jiubredeemer.magic.service.SpellImageGenerationService;
 import com.jiubredeemer.magic.service.SpellService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ class SpellControllerTest {
 
     @MockitoBean
     SpellService spellService;
+
+    @MockitoBean
+    SpellImageGenerationService spellImageGenerationService;
 
     private static SpellDto spellDto(UUID id) {
         SpellDto dto = new SpellDto();

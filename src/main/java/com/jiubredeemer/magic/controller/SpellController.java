@@ -1,6 +1,7 @@
 package com.jiubredeemer.magic.controller;
 
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
+import com.jiubredeemer.magic.service.SpellImageGenerationService;
 import com.jiubredeemer.magic.service.SpellService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SpellController {
     private final SpellService spellService;
+    private final SpellImageGenerationService spellImageGenerationService;
 
     @PostMapping
     public SpellDto create(@RequestBody SpellDto dto) {
@@ -43,4 +45,31 @@ public class SpellController {
         spellService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+//    @PostMapping("/ai")
+//    public SpellDto createInAi(@RequestBody SpellDto dto) {
+//        return spellService.createInAi(dto);
+//    }
+//
+//    @GetMapping("/from-spell/missing-in-ai")
+//    public ResponseEntity<SpellDto> getOneFromSpellMissingInAi() {
+//        return spellService.getOneFromSpellMissingInAi()
+//                .map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
+//
+//    @GetMapping("/from-spell/missing-image-in-ai")
+//    public ResponseEntity<SpellDto> getOneFromSpellMissingImageInAi() {
+//        return spellService.getOneFromSpellMissingImageInAi()
+//                .map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
+//
+//    /**
+//     * Generate and upload spell image for a row in {@code spell_ai} (by id). For n8n after the id is known.
+//     */
+//    @PostMapping("/ai/{id}/generate-image")
+//    public SpellDto generateImageForSpellAi(@PathVariable UUID id) {
+//        return spellImageGenerationService.generateAndSaveImageForSpellAi(id);
+//    }
 }

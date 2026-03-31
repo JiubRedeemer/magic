@@ -1,27 +1,45 @@
 package com.jiubredeemer.magic.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Type;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 @Entity
-@Table(name = "spell", schema = "magic")
+@Table(name = "spell_ai", schema = "magic")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Spell {
+public class SpellAi {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private java.util.UUID id;
+    private UUID id;
+
+    @PrePersist
+    void assignIdIfNull() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 
     @Type(JsonbMapType.class)
     @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, String> name;
+
+    @Type(JsonbMapType.class)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private Map<String, String> aliasName;
 
     @Column(nullable = false)
     private String level;
@@ -61,12 +79,9 @@ public class Spell {
     @Column(columnDefinition = "text")
     private String description;
 
-    /** Only for {@code spell_ai} mapping; not stored in {@code magic.spell}. */
-    @Transient
+    /** English description for prompts / display; optional manual fill to avoid translation. */
+    @Column(name = "eng_description", columnDefinition = "text")
     private String engDescription;
-
-    @Transient
-    private Map<String, String> aliasName;
 
     @Column(name = "ttg_slug", unique = true)
     private String ttgSlug;

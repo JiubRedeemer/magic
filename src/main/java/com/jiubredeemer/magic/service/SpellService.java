@@ -1,20 +1,30 @@
 package com.jiubredeemer.magic.service;
 
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
+import com.jiubredeemer.magic.entity.SpellAi;
 import com.jiubredeemer.magic.entity.Spell;
 import com.jiubredeemer.magic.mapper.SpellDtoMapper;
+import com.jiubredeemer.magic.repository.SpellAiRepository;
 import com.jiubredeemer.magic.repository.SpellRepository;
+import io.micrometer.observation.ObservationFilter;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class SpellService {
+    private final SpellStorageService spellStorageService;
     private final SpellRepository spellRepository;
+    private final SpellAiRepository spellAiRepository;
+    private final EntityManager entityManager;
     private final SpellDtoMapper spellDtoMapper;
 
     public SpellDto create(SpellDto dto) {
@@ -23,16 +33,16 @@ public class SpellService {
         if (dto.getCharacterId() != null) {
             entity.setCreatedBy(dto.getCharacterId().toString());
         }
-        Spell saved = spellRepository.save(entity);
+        Spell saved = spellStorageService.save(entity);
         return spellDtoMapper.toDto(saved);
     }
 
     public SpellDto getById(UUID id) {
-        return spellDtoMapper.toDto(spellRepository.findById(id).orElseThrow());
+        return spellDtoMapper.toDto(spellStorageService.findById(id).orElseThrow());
     }
 
     public List<SpellDto> list() {
-        return spellDtoMapper.toDto(spellRepository.findAll());
+        return spellDtoMapper.toDto(spellStorageService.findAll());
     }
 
     /**
@@ -46,19 +56,62 @@ public class SpellService {
         String codePrefix = code + ", %";
         String codeSuffix = "%, " + code;
         String codeMiddle = "%, " + code + ", %";
-        return spellDtoMapper.toDto(spellRepository.findBySpellClass(code, codePrefix, codeSuffix, codeMiddle));
+        return spellDtoMapper.toDto(spellStorageService.findBySpellClass(code, codePrefix, codeSuffix, codeMiddle));
     }
 
     public SpellDto update(UUID id, SpellDto dto) {
-        Spell entity = spellRepository.findById(id).orElseThrow();
+        Spell entity = spellStorageService.findById(id).orElseThrow();
         spellDtoMapper.updateEntity(dto, entity);
         entity.setId(id);
         entity.setCreatedAt(Instant.now());
-        Spell saved = spellRepository.save(entity);
+        Spell saved = spellStorageService.save(entity);
         return spellDtoMapper.toDto(saved);
     }
 
     public void delete(UUID id) {
-        spellRepository.deleteById(id);
+        spellStorageService.deleteById(id);
+    }
+
+    /**
+     * Inserts or updates {@code spell_ai}. When {@code id} is set, Spring Data {@code save} would call
+     * {@code merge} and fail for new rows — we use {@code persist} for insert with a client-provided id.
+     */
+    @Transactional
+    public SpellDto createInAi(SpellDto dto) {
+        SpellAi entity = new SpellAi();
+        BeanUtils.copyProperties(dto, entity);
+        entity.setCreatedAt(Instant.now());
+
+        UUID id = dto.getId();
+        SpellAi saved;
+        if (id != null) {
+            Optional<SpellAi> existingOpt = spellAiRepository.findById(id);
+            if (existingOpt.isPresent()) {
+                SpellAi existing = existingOpt.get();
+                BeanUtils.copyProperties(dto, existing);
+                if (existing.getCreatedAt() == null) {
+                    existing.setCreatedAt(Instant.now());
+                }
+                saved = spellAiRepository.save(existing);
+            } else {
+                entityManager.persist(entity);
+                entityManager.flush();
+                saved = entity;
+            }
+        } else {
+            saved = spellAiRepository.save(entity);
+        }
+
+        Spell spell = new Spell();
+        BeanUtils.copyProperties(saved, spell);
+        return spellDtoMapper.toDto(spell);
+    }
+
+    public Optional<SpellDto> getOneFromSpellMissingInAi() {
+        return spellRepository.findOneMissingInAi().map(spellDtoMapper::toDto);
+    }
+
+    public  Optional<SpellDto> getOneFromSpellMissingImageInAi() {
+        return spellRepository.findOneFromSpellMissingImageInAi().map(spellDtoMapper::toDto);
     }
 }

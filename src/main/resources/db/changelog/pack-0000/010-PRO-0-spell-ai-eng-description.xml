@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="PRO-0:SpellAiEngDescription:30.03.2026" author="jiubredeemer">
+        <addColumn tableName="spell_ai" schemaName="magic">
+            <column name="eng_description" type="text"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

@@ -23,6 +23,9 @@ public class SpellDto {
     private String components;
     private String materialComponents;
     private String description;
+    /** English description; persisted only on {@code spell_ai}. */
+    private String engDescription;
+    private Map<String, String> aliasName;
     private Instant createdAt;
     /** Set when creating a spell; stored as createdBy. */
     private java.util.UUID characterId;
