@@ -12,6 +12,20 @@ spring:
 server:
   port: 8086
 
+magic:
+  spells:
+    use-ai-table: true
+  images:
+    sd-txt2img-url: http://127.0.0.1:7860/sdapi/v1/txt2img
+    upload-url: http://localhost:8079/files/spell-images/upload
+    prompt-format: "fantasy RPG spell icon, Name of spell: %s, Description: %s"
+    steps: 20
+    width: 512
+    height: 512
+    seed: -1
+    sampler-name: euler
+    scheduler: Simple
+
 # Optional: override TTG API base URL (default: https://5e14.ttg.club/api/v1)
 # ttg:
 #   api:

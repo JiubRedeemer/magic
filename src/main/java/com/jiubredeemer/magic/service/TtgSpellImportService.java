@@ -5,7 +5,6 @@ import com.jiubredeemer.magic.dto.ttg.TtgComponents;
 import com.jiubredeemer.magic.dto.ttg.TtgSpellDetail;
 import com.jiubredeemer.magic.dto.ttg.TtgSpellListItem;
 import com.jiubredeemer.magic.entity.Spell;
-import com.jiubredeemer.magic.repository.SpellRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +22,7 @@ public class TtgSpellImportService {
     private static final int PROGRESS_LOG_INTERVAL = 50;
 
     private final TtgApiClient ttgApiClient;
-    private final SpellRepository spellRepository;
+    private final SpellStorageService spellStorageService;
 
     /**
      * Extra pause between TTG spell detail requests (helps avoid 429).
@@ -32,9 +31,9 @@ public class TtgSpellImportService {
     @Value("${ttg.api.detail-request-delay-ms:0}")
     private long detailRequestDelayMs;
 
-    public TtgSpellImportService(TtgApiClient ttgApiClient, SpellRepository spellRepository) {
+    public TtgSpellImportService(TtgApiClient ttgApiClient, SpellStorageService spellStorageService) {
         this.ttgApiClient = ttgApiClient;
-        this.spellRepository = spellRepository;
+        this.spellStorageService = spellStorageService;
     }
 
     public ImportResult importSpells() {
@@ -59,7 +58,7 @@ public class TtgSpellImportService {
             }
 
             try {
-                Spell spell = spellRepository.findByTtgSlug(slug)
+                Spell spell = spellStorageService.findByTtgSlug(slug)
                         .orElse(new Spell());
 
                 sleepBeforeTtgDetailRequest();
@@ -70,7 +69,7 @@ public class TtgSpellImportService {
                 if (isNew) {
                     spell.setCreatedBy("TTG");
                 }
-                spellRepository.save(spell);
+                spellStorageService.save(spell);
 
                 if (isNew) {
                     imported++;

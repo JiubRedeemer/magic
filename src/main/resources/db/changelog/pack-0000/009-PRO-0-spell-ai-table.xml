@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="PRO-0:SpellAiTable:30.03.2026" author="jiubredeemer">
+        <sql>
+            CREATE TABLE magic.spell_ai
+            (
+                id                  uuid        NOT NULL,
+                name                jsonb       NOT NULL,
+                level               text        NOT NULL,
+                class               text,
+                school              text        NOT NULL,
+                ritual              boolean,
+                customization       boolean     NOT NULL,
+                damage_type         text,
+                heal_type           text,
+                saving_throw        text,
+                use_time            text,
+                distance            text,
+                duration            text,
+                components          text,
+                material_components text,
+                description         text,
+                ttg_slug            varchar(255),
+                created_at          timestamp   NOT NULL,
+                created_by          varchar(255),
+                img_url             varchar,
+                CONSTRAINT spell_ai_pk PRIMARY KEY (id),
+                CONSTRAINT spell_ai_ttg_slug_uq UNIQUE (ttg_slug)
+            );
+
+            INSERT INTO magic.spell_ai (
+                id, name, level, class, school, ritual, customization, damage_type, heal_type,
+                saving_throw, use_time, distance, duration, components, material_components,
+                description, ttg_slug, created_at, created_by, img_url
+            )
+            SELECT
+                id, name, level, class, school, ritual, customization, damage_type, heal_type,
+                saving_throw, use_time, distance, duration, components, material_components,
+                description, ttg_slug, created_at, created_by, img_url
+            FROM magic.spell;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -15,4 +15,7 @@
     <include file="006-PRO-81-nullable-class.xml" relativeToChangelogFile="true"/>
     <include file="007-PRO-31_delete_room.sql" relativeToChangelogFile="true"/>
     <include file="008-PRO-0-spell-material-components.xml" relativeToChangelogFile="true"/>
+    <include file="009-PRO-0-spell-ai-table.xml" relativeToChangelogFile="true"/>
+    <include file="010-PRO-0-spell-ai-eng-description.xml" relativeToChangelogFile="true"/>
+    <include file="011-PRO-0_add_alias_to_srd.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -1,6 +1,7 @@
 package com.jiubredeemer.magic.repository;
 
 import com.jiubredeemer.magic.entity.Spell;
+import io.micrometer.observation.ObservationFilter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,4 +28,23 @@ public interface SpellRepository extends JpaRepository<Spell, java.util.UUID> {
                                  @Param("codePrefix") String codePrefix,
                                  @Param("codeSuffix") String codeSuffix,
                                  @Param("codeMiddle") String codeMiddle);
+
+    @Query(value = """
+            SELECT s.*
+            FROM magic.spell s
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM magic.spell_ai ai
+                WHERE ai.id = s.id
+            )
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Spell> findOneMissingInAi();
+
+    @Query(value = """
+            SELECT s.*
+            FROM magic.spell_ai s WHERE s.img_url is null
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Spell> findOneFromSpellMissingImageInAi();
 }
