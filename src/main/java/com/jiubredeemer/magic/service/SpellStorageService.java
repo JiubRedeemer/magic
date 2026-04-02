@@ -31,7 +31,10 @@ public class SpellStorageService {
         if (!useAiTable) {
             return spellRepository.save(spell);
         }
+        Spell spellBase = spellRepository.save(spell);
         SpellAi aiToSave = toSpellAi(spell);
+        aiToSave.setId(spellBase.getId());
+        if(aiToSave.getAliasName() == null) aiToSave.setAliasName(aiToSave.getName());
         SpellAi saved = spellAiRepository.save(aiToSave);
         return toSpell(saved);
     }

@@ -39,7 +39,7 @@ public class SpellAi {
 
     @Type(JsonbMapType.class)
     @Column(nullable = false, columnDefinition = "jsonb")
-    private Map<String, String> aliasName;
+    private Map<String, String> aliasName = name;
 
     @Column(nullable = false)
     private String level;
