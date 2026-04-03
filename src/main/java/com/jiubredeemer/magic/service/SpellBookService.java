@@ -175,7 +175,7 @@ public class SpellBookService {
         SpellBookItemDto dto = spellBookItemDtoMapper.toDto(item);
         if (item.getSpellId() != null) {
             Spell spell = spellAiRepository.findById(item.getSpellId()).map(this::toSpell)
-                    .orElse(spellRepository.findById(item.getSpellId()).orElseThrow());
+                    .orElseGet(() -> spellRepository.findById(item.getSpellId()).orElseThrow());
             dto.setSpell(spellDtoMapper.toDto(spell));
         }
         return dto;
