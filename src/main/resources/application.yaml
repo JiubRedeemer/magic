@@ -14,7 +14,7 @@ server:
 
 magic:
   spells:
-    use-ai-table: true
+    use-ai-table: false
   images:
     sd-txt2img-url: http://127.0.0.1:7860/sdapi/v1/txt2img
     upload-url: http://localhost:8079/files/spell-images/upload
