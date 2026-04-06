@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="PRO-0:SpellStorageSplit:06.04.2026" author="jiubredeemer">
+        <sql>
+            ALTER TABLE magic.spell_book_item DROP CONSTRAINT IF EXISTS spell_book_item_spell_fk;
+
+            CREATE TABLE magic.spells_user (LIKE magic.spell INCLUDING DEFAULTS INCLUDING STORAGE);
+            ALTER TABLE magic.spells_user ADD CONSTRAINT spells_user_pkey PRIMARY KEY (id);
+            CREATE UNIQUE INDEX spells_user_ttg_slug_key ON magic.spells_user (ttg_slug);
+
+            INSERT INTO magic.spells_user SELECT * FROM magic.spell WHERE ttg_slug IS NULL;
+
+            DELETE FROM magic.spell WHERE ttg_slug IS NULL;
+
+            DELETE FROM magic.spell_ai WHERE ttg_slug IS NULL;
+
+            CREATE TABLE magic.spell_24 (LIKE magic.spell INCLUDING DEFAULTS INCLUDING STORAGE);
+            ALTER TABLE magic.spell_24 ADD CONSTRAINT spell_24_pkey PRIMARY KEY (id);
+            CREATE UNIQUE INDEX spell_24_ttg_slug_key ON magic.spell_24 (ttg_slug);
+
+            CREATE TABLE magic.spell_24_ai (LIKE magic.spell_ai INCLUDING DEFAULTS INCLUDING STORAGE);
+            ALTER TABLE magic.spell_24_ai ADD CONSTRAINT spell_24_ai_pkey PRIMARY KEY (id);
+            CREATE UNIQUE INDEX spell_24_ai_ttg_slug_key ON magic.spell_24_ai (ttg_slug);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -3,8 +3,8 @@ package com.jiubredeemer.magic.service;
 import com.jiubredeemer.magic.client.TtgApiClient;
 import com.jiubredeemer.magic.dto.ttg.TtgSpellDetail;
 import com.jiubredeemer.magic.dto.ttg.TtgSpellListItem;
+import com.jiubredeemer.magic.dto.spellbook.SpellImportResult;
 import com.jiubredeemer.magic.entity.Spell;
-import com.jiubredeemer.magic.repository.SpellRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -19,7 +19,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +28,7 @@ class TtgSpellImportServiceTest {
     TtgApiClient ttgApiClient;
 
     @Mock
-    SpellRepository spellRepository;
+    SpellStorageService spellStorageService;
 
     @InjectMocks
     TtgSpellImportService ttgSpellImportService;
@@ -73,9 +72,9 @@ class TtgSpellImportServiceTest {
         TtgSpellDetail spellDetail = detail(slug);
 
         when(ttgApiClient.fetchSpellList(0, 1000)).thenReturn(List.of(listItem));
-        when(spellRepository.findByTtgSlug(slug)).thenReturn(Optional.empty());
+        when(spellStorageService.findByTtgSlug(slug)).thenReturn(Optional.empty());
         when(ttgApiClient.fetchSpellDetail(slug)).thenReturn(spellDetail);
-        when(spellRepository.save(any(Spell.class))).thenAnswer(inv -> {
+        when(spellStorageService.save(any(Spell.class))).thenAnswer(inv -> {
             Spell s = inv.getArgument(0);
             if (s.getId() == null) {
                 s.setId(UUID.randomUUID());
@@ -83,7 +82,7 @@ class TtgSpellImportServiceTest {
             return s;
         });
 
-        TtgSpellImportService.ImportResult result = ttgSpellImportService.importSpells();
+        SpellImportResult result = ttgSpellImportService.importSpells();
 
         assertThat(result.total()).isEqualTo(1);
         assertThat(result.imported()).isEqualTo(1);
@@ -91,7 +90,7 @@ class TtgSpellImportServiceTest {
         assertThat(result.failed()).isEqualTo(0);
 
         ArgumentCaptor<Spell> spellCaptor = ArgumentCaptor.forClass(Spell.class);
-        verify(spellRepository).save(spellCaptor.capture());
+        verify(spellStorageService).save(spellCaptor.capture());
         assertThat(spellCaptor.getValue().getCreatedBy()).isEqualTo("TTG");
 
         verify(ttgApiClient).fetchSpellDetail(slug);
@@ -112,7 +111,7 @@ class TtgSpellImportServiceTest {
 
         when(ttgApiClient.fetchSpellList(0, 1000)).thenReturn(List.of(invalidItem));
 
-        TtgSpellImportService.ImportResult result = ttgSpellImportService.importSpells();
+        SpellImportResult result = ttgSpellImportService.importSpells();
 
         assertThat(result.total()).isEqualTo(1);
         assertThat(result.imported()).isEqualTo(0);
@@ -120,7 +119,7 @@ class TtgSpellImportServiceTest {
         assertThat(result.failed()).isEqualTo(1);
 
         verify(ttgApiClient, never()).fetchSpellDetail(any());
-        verify(spellRepository, never()).save(any());
+        verify(spellStorageService, never()).save(any());
     }
 
     @Test
@@ -134,11 +133,11 @@ class TtgSpellImportServiceTest {
         existingSpell.setName(Map.of("en", "Old Name"));
 
         when(ttgApiClient.fetchSpellList(0, 1000)).thenReturn(List.of(listItem));
-        when(spellRepository.findByTtgSlug(slug)).thenReturn(Optional.of(existingSpell));
+        when(spellStorageService.findByTtgSlug(slug)).thenReturn(Optional.of(existingSpell));
         when(ttgApiClient.fetchSpellDetail(slug)).thenReturn(spellDetail);
-        when(spellRepository.save(any(Spell.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(spellStorageService.save(any(Spell.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        TtgSpellImportService.ImportResult result = ttgSpellImportService.importSpells();
+        SpellImportResult result = ttgSpellImportService.importSpells();
 
         assertThat(result.total()).isEqualTo(1);
         assertThat(result.imported()).isEqualTo(0);
@@ -146,7 +145,7 @@ class TtgSpellImportServiceTest {
         assertThat(result.failed()).isEqualTo(0);
 
         ArgumentCaptor<Spell> spellCaptor = ArgumentCaptor.forClass(Spell.class);
-        verify(spellRepository).save(spellCaptor.capture());
+        verify(spellStorageService).save(spellCaptor.capture());
         Spell saved = spellCaptor.getValue();
         assertThat(saved.getId()).isEqualTo(existingSpell.getId());
         assertThat(saved.getName()).containsEntry("en", "Fireball");
@@ -158,16 +157,16 @@ class TtgSpellImportServiceTest {
         TtgSpellListItem listItem = listItem(slug);
 
         when(ttgApiClient.fetchSpellList(0, 1000)).thenReturn(List.of(listItem));
-        when(spellRepository.findByTtgSlug(slug)).thenReturn(Optional.empty());
+        when(spellStorageService.findByTtgSlug(slug)).thenReturn(Optional.empty());
         when(ttgApiClient.fetchSpellDetail(slug)).thenThrow(new RuntimeException("API error"));
 
-        TtgSpellImportService.ImportResult result = ttgSpellImportService.importSpells();
+        SpellImportResult result = ttgSpellImportService.importSpells();
 
         assertThat(result.total()).isEqualTo(1);
         assertThat(result.imported()).isEqualTo(0);
         assertThat(result.updated()).isEqualTo(0);
         assertThat(result.failed()).isEqualTo(1);
 
-        verify(spellRepository, never()).save(any());
+        verify(spellStorageService, never()).save(any());
     }
 }

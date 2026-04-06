@@ -2,6 +2,7 @@ package com.jiubredeemer.magic.mapper;
 
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
 import com.jiubredeemer.magic.entity.Spell;
+import com.jiubredeemer.magic.entity.Spell24;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,12 @@ import java.util.stream.StreamSupport;
 public class SpellDtoMapper {
 
     public SpellDto toDto(Spell entity) {
+        final SpellDto model = new SpellDto();
+        BeanUtils.copyProperties(entity, model);
+        return model;
+    }
+
+    public SpellDto toDto(Spell24 entity) {
         final SpellDto model = new SpellDto();
         BeanUtils.copyProperties(entity, model);
         return model;

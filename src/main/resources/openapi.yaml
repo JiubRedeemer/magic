@@ -1,7 +1,14 @@
 openapi: 3.0.3
 info:
   title: Magic API
-  description: API for spell books, spells, spell cells, and spell import
+  description: |
+    API for spell books, spells, spell cells, and spell import.
+
+    Spell catalogs by ruleset:
+    - DnD 5e (TTG 5e14): `/spells/import`
+    - DnD 2024 (TTG Club v2): `/spells/import-2024`
+    - DnD 2024 listing only: `/spells/dnd2024`
+    - Unified listing for integrations (legacy-compatible): `/spells`
   version: 0.0.1-SNAPSHOT
 
 servers:
@@ -11,10 +18,14 @@ servers:
 paths:
   /spells:
     get:
-      summary: List all spells (optionally filter by class)
+      summary: List spells for legacy integrations (unified catalog)
       operationId: listSpells
       tags:
         - Spells
+      description: |
+        Returns the unified spell list used by existing integrations.
+        Includes available entries according to current storage mode.
+        Use `/spells/dnd2024` when you need only DnD 2024 catalog rows.
       parameters:
         - name: spellClass
           in: query
@@ -64,12 +75,72 @@ paths:
               schema:
                 $ref: '#/components/schemas/SpellDto'
 
+  /spells/dnd2024:
+    get:
+      summary: List DnD 2024 spells (optionally filter by class)
+      operationId: listSpellsDnd2024
+      tags:
+        - Spells
+      description: |
+        Returns only DnD 2024 catalog rows.
+        If `magic.spells.use-ai-table=true`, data is read from `spell_24_ai`;
+        otherwise from `spell_24`.
+      parameters:
+        - name: spellClass
+          in: query
+          required: false
+          description: Filter DnD 2024 spells available to this class (e.g. BARD, WIZARD, DRUID)
+          schema:
+            type: string
+            enum:
+              - BARD
+              - BARBARIAN
+              - FIGHTER
+              - WIZARD
+              - DRUID
+              - CLERIC
+              - ARTIFICER
+              - WARLOCK
+              - MONK
+              - PALADIN
+              - ROGUE
+              - RANGER
+              - SORCERER
+      responses:
+        '200':
+          description: List of DnD 2024 spells
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpellDto'
+
   /spells/import:
     post:
-      summary: Import spells from TTG
+      summary: Import DnD 5e spells from TTG (5e14)
       operationId: importSpells
       tags:
         - Spells
+      description: |
+        Imports DnD 5e spells from TTG API into `spell` (and `spell_ai` when AI mode is enabled).
+      responses:
+        '200':
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+
+  /spells/import-2024:
+    post:
+      summary: Import DnD 2024 spells from TTG Club API v2
+      operationId: importSpells2024
+      tags:
+        - Spells
+      description: |
+        Imports DnD 2024 spells from `new.ttg.club/api/v2` into `spell_24`
+        (and `spell_24_ai` when AI mode is enabled).
       responses:
         '200':
           description: Import result

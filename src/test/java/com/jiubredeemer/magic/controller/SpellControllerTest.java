@@ -105,6 +105,33 @@ class SpellControllerTest {
     }
 
     @Test
+    void list2024_returnsSpellList() throws Exception {
+        SpellDto dto = spellDto(UUID.randomUUID());
+        when(spellService.list2024()).thenReturn(List.of(dto));
+
+        mockMvc.perform(get("/api/spells/dnd2024"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].name.en").value("Fireball"));
+
+        verify(spellService).list2024();
+    }
+
+    @Test
+    void list2024_withSpellClassParam_callsListByClass() throws Exception {
+        SpellDto dto = spellDto(UUID.randomUUID());
+        dto.setSpellClass("WIZARD");
+        when(spellService.list2024ByClass("WIZARD")).thenReturn(List.of(dto));
+
+        mockMvc.perform(get("/api/spells/dnd2024").param("spellClass", "WIZARD"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].spellClass").value("WIZARD"));
+
+        verify(spellService).list2024ByClass("WIZARD");
+    }
+
+    @Test
     void update_returnsUpdatedSpell() throws Exception {
         UUID id = UUID.randomUUID();
         SpellDto request = spellDto(id);

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="PRO-0:Spell24NameLocaleKeys:06.04.2026" author="jiubredeemer">
+        <sql>
+            UPDATE magic.spell_24
+            SET name = jsonb_strip_nulls(
+                    (name - 'ru' - 'en')
+                    || jsonb_build_object(
+                            'rus', COALESCE(name ->> 'rus', name ->> 'ru'),
+                            'eng', COALESCE(name ->> 'eng', name ->> 'en')
+                       )
+                       )
+            WHERE jsonb_exists(name, 'ru') OR jsonb_exists(name, 'en');
+
+            UPDATE magic.spell_24_ai
+            SET name = jsonb_strip_nulls(
+                    (name - 'ru' - 'en')
+                    || jsonb_build_object(
+                            'rus', COALESCE(name ->> 'rus', name ->> 'ru'),
+                            'eng', COALESCE(name ->> 'eng', name ->> 'en')
+                       )
+                       )
+            WHERE jsonb_exists(name, 'ru') OR jsonb_exists(name, 'en');
+
+            UPDATE magic.spell_24_ai
+            SET alias_name = jsonb_strip_nulls(
+                    (alias_name - 'ru' - 'en')
+                    || jsonb_build_object(
+                            'rus', COALESCE(alias_name ->> 'rus', alias_name ->> 'ru'),
+                            'eng', COALESCE(alias_name ->> 'eng', alias_name ->> 'en')
+                       )
+                       )
+            WHERE alias_name IS NOT NULL
+              AND (jsonb_exists(alias_name, 'ru') OR jsonb_exists(alias_name, 'en'));
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -18,4 +18,6 @@
     <include file="009-PRO-0-spell-ai-table.xml" relativeToChangelogFile="true"/>
     <include file="010-PRO-0-spell-ai-eng-description.xml" relativeToChangelogFile="true"/>
     <include file="011-PRO-0_add_alias_to_srd.sql" relativeToChangelogFile="true"/>
+    <include file="012-PRO-0-spell-storage-split.xml" relativeToChangelogFile="true"/>
+    <include file="013-PRO-0-spell24-name-locale-keys.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -10,7 +10,6 @@ import com.jiubredeemer.magic.mapper.SpellCellDtoMapper;
 import com.jiubredeemer.magic.mapper.SpellDtoMapper;
 import com.jiubredeemer.magic.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -32,9 +31,8 @@ public class SpellBookService {
     private final SpellBookItemDtoMapper spellBookItemDtoMapper;
     private final SpellCellRepository spellCellRepository;
     private final SpellCellDtoMapper spellCellDtoMapper;
-    private final SpellRepository spellRepository;
+    private final SpellStorageService spellStorageService;
     private final SpellDtoMapper spellDtoMapper;
-    private final SpellAiRepository spellAiRepository;
 
     public SpellBookDto create(SpellBookDto dto) {
         SpellBook entity = spellBookDtoMapper.toEntity(dto);
@@ -174,17 +172,10 @@ public class SpellBookService {
     private SpellBookItemDto enrichSpellBookItemDto(SpellBookItem item) {
         SpellBookItemDto dto = spellBookItemDtoMapper.toDto(item);
         if (item.getSpellId() != null) {
-            Spell spell = spellAiRepository.findById(item.getSpellId()).map(this::toSpell)
-                    .orElseGet(() -> spellRepository.findById(item.getSpellId()).orElseThrow());
+            Spell spell = spellStorageService.findById(item.getSpellId()).orElseThrow();
             dto.setSpell(spellDtoMapper.toDto(spell));
         }
         return dto;
-    }
-
-    private Spell toSpell(SpellAi source) {
-        Spell target = new Spell();
-        BeanUtils.copyProperties(source, target);
-        return target;
     }
 
     public void deleteLogical(UUID roomId) {

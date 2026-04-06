@@ -1,5 +1,7 @@
 package com.jiubredeemer.magic.controller;
 
+import com.jiubredeemer.magic.dto.spellbook.SpellImportResult;
+import com.jiubredeemer.magic.service.TtgSpell24ImportService;
 import com.jiubredeemer.magic.service.TtgSpellImportService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +23,12 @@ class SpellImportControllerTest {
     @MockitoBean
     TtgSpellImportService importService;
 
+    @MockitoBean
+    TtgSpell24ImportService import24Service;
+
     @Test
     void importSpells_returnsImportResult() throws Exception {
-        TtgSpellImportService.ImportResult result =
-                new TtgSpellImportService.ImportResult(100, 80, 15, 5);
+        SpellImportResult result = new SpellImportResult(100, 80, 15, 5);
         when(importService.importSpells()).thenReturn(result);
 
         mockMvc.perform(post("/api/spells/import"))
@@ -35,5 +39,20 @@ class SpellImportControllerTest {
                 .andExpect(jsonPath("$.failed").value(5));
 
         verify(importService).importSpells();
+    }
+
+    @Test
+    void importSpells2024_returnsImportResult() throws Exception {
+        SpellImportResult result = new SpellImportResult(50, 40, 8, 2);
+        when(import24Service.importSpells()).thenReturn(result);
+
+        mockMvc.perform(post("/api/spells/import-2024"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(50))
+                .andExpect(jsonPath("$.imported").value(40))
+                .andExpect(jsonPath("$.updated").value(8))
+                .andExpect(jsonPath("$.failed").value(2));
+
+        verify(import24Service).importSpells();
     }
 }

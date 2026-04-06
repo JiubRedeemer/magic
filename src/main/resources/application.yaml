@@ -14,7 +14,7 @@ server:
 
 magic:
   spells:
-    use-ai-table: true
+    use-ai-table: false
   images:
     sd-txt2img-url: http://127.0.0.1:7860/sdapi/v1/txt2img
     upload-url: http://localhost:8079/files/spell-images/upload
@@ -26,7 +26,19 @@ magic:
     sampler-name: euler
     scheduler: Simple
 
-# Optional: override TTG API base URL (default: https://5e14.ttg.club/api/v1)
+# Optional: TTG DnD 5e (5e14.ttg.club)
 # ttg:
 #   api:
 #     base-url: https://5e14.ttg.club/api/v1
+#     origin: https://5e14.ttg.club
+#     referer: https://5e14.ttg.club/spells
+#     detail-request-delay-ms: 0
+
+# Optional: TTG DnD 2024 (new.ttg.club) — REST v2: GET .../spells/search?source=... and GET .../spells/{slug}
+# ttg2024:
+#   api:
+#     base-url: https://new.ttg.club/api/v2
+#     search-sources: PHB,EFA
+#     origin: https://new.ttg.club
+#     referer: https://new.ttg.club/spells
+#     detail-request-delay-ms: 0

@@ -1,12 +1,13 @@
 package com.jiubredeemer.magic.service;
 
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
+import com.jiubredeemer.magic.entity.Spell24Ai;
 import com.jiubredeemer.magic.entity.SpellAi;
 import com.jiubredeemer.magic.entity.Spell;
 import com.jiubredeemer.magic.mapper.SpellDtoMapper;
+import com.jiubredeemer.magic.repository.Spell24AiRepository;
 import com.jiubredeemer.magic.repository.SpellAiRepository;
 import com.jiubredeemer.magic.repository.SpellRepository;
-import io.micrometer.observation.ObservationFilter;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class SpellService {
     private final SpellStorageService spellStorageService;
     private final SpellRepository spellRepository;
-    private final SpellAiRepository spellAiRepository;
+    private final Spell24AiRepository spell24AiRepository;
     private final EntityManager entityManager;
     private final SpellDtoMapper spellDtoMapper;
 
@@ -45,6 +46,11 @@ public class SpellService {
         return spellDtoMapper.toDto(spellStorageService.findAll());
     }
 
+    /** Lists only DnD 2024 spells. */
+    public List<SpellDto> list2024() {
+        return spellDtoMapper.toDto(spellStorageService.findAll24());
+    }
+
     /**
      * List spells available to the specified class (e.g. BARD, WIZARD).
      */
@@ -57,6 +63,18 @@ public class SpellService {
         String codeSuffix = "%, " + code;
         String codeMiddle = "%, " + code + ", %";
         return spellDtoMapper.toDto(spellStorageService.findBySpellClass(code, codePrefix, codeSuffix, codeMiddle));
+    }
+
+    /** Lists DnD 2024 spells filtered by class. */
+    public List<SpellDto> list2024ByClass(String spellClass) {
+        String code = spellClass == null ? "" : spellClass.trim().toUpperCase();
+        if (code.isEmpty()) {
+            return List.of();
+        }
+        String codePrefix = code + ", %";
+        String codeSuffix = "%, " + code;
+        String codeMiddle = "%, " + code + ", %";
+        return spellDtoMapper.toDto(spellStorageService.findBySpellClass24(code, codePrefix, codeSuffix, codeMiddle));
     }
 
     public SpellDto update(UUID id, SpellDto dto) {
@@ -78,28 +96,28 @@ public class SpellService {
      */
     @Transactional
     public SpellDto createInAi(SpellDto dto) {
-        SpellAi entity = new SpellAi();
+        Spell24Ai entity = new Spell24Ai();
         BeanUtils.copyProperties(dto, entity);
         entity.setCreatedAt(Instant.now());
 
         UUID id = dto.getId();
-        SpellAi saved;
+        Spell24Ai saved;
         if (id != null) {
-            Optional<SpellAi> existingOpt = spellAiRepository.findById(id);
+            Optional<Spell24Ai> existingOpt = spell24AiRepository.findById(id);
             if (existingOpt.isPresent()) {
-                SpellAi existing = existingOpt.get();
+                Spell24Ai existing = existingOpt.get();
                 BeanUtils.copyProperties(dto, existing);
                 if (existing.getCreatedAt() == null) {
                     existing.setCreatedAt(Instant.now());
                 }
-                saved = spellAiRepository.save(existing);
+                saved = spell24AiRepository.save(existing);
             } else {
                 entityManager.persist(entity);
                 entityManager.flush();
                 saved = entity;
             }
         } else {
-            saved = spellAiRepository.save(entity);
+            saved = spell24AiRepository.save(entity);
         }
 
         Spell spell = new Spell();
@@ -108,10 +126,10 @@ public class SpellService {
     }
 
     public Optional<SpellDto> getOneFromSpellMissingInAi() {
-        return spellRepository.findOneMissingInAi().map(spellDtoMapper::toDto);
+        return spell24AiRepository.findOneMissingInAi().map(spellDtoMapper::toDto);
     }
 
     public  Optional<SpellDto> getOneFromSpellMissingImageInAi() {
-        return spellRepository.findOneFromSpellMissingImageInAi().map(spellDtoMapper::toDto);
+        return spell24AiRepository.findOneFromSpellMissingImageInAi().map(spellDtoMapper::toDto);
     }
 }

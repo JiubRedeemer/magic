@@ -1,65 +1,70 @@
 package com.jiubredeemer.magic.client;
 
-import com.jiubredeemer.magic.dto.ttg.TtgSpellDetail;
-import com.jiubredeemer.magic.dto.ttg.TtgSpellListItem;
-import com.jiubredeemer.magic.dto.ttg.TtgSpellListRequest;
+import com.jiubredeemer.magic.dto.ttg.v2.TtgV2SpellDetail;
+import com.jiubredeemer.magic.dto.ttg.v2.TtgV2SpellListItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.function.Supplier;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class TtgApiClient {
+/**
+ * TTG Club HTTP API v2 (DnD 2024, new.ttg.club): GET list and GET detail.
+ */
+public class TtgClubV2ApiClient {
 
-    private static final Logger log = LoggerFactory.getLogger(TtgApiClient.class);
+    private static final Logger log = LoggerFactory.getLogger(TtgClubV2ApiClient.class);
 
-    private static final ParameterizedTypeReference<List<TtgSpellListItem>> SPELL_LIST_TYPE =
+    private static final ParameterizedTypeReference<List<TtgV2SpellListItem>> SPELL_LIST_TYPE =
             new ParameterizedTypeReference<>() {};
 
     private static final int MAX_429_RETRIES = 15;
     private static final long INITIAL_429_DELAY_MS = 2000L;
-    private static final long MAX_429_DELAY_MS = 180_000L; // 3 minutes
+    private static final long MAX_429_DELAY_MS = 180_000L;
 
     private final RestClient restClient;
+    private final String searchSources;
 
-    public TtgApiClient(String baseUrl, String origin, String referer) {
+    public TtgClubV2ApiClient(String baseUrl, String origin, String referer, String searchSources) {
+        this.searchSources = searchSources;
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader("Origin", origin)
                 .defaultHeader("Referer", referer)
                 .build();
     }
 
-    public List<TtgSpellListItem> fetchSpellList(int page, int size) {
-        TtgSpellListRequest request = TtgSpellListRequest.allSpells(page, size);
+    public List<TtgV2SpellListItem> fetchSpellList(int page, int size) {
         return executeWith429Retry(
-                "ttg.fetchSpellList(page=%d,size=%d)".formatted(page, size),
-                () -> restClient.post()
-                        .uri("/spells")
-                        .body(request)
+                "ttg.v2.fetchSpellList(page=%d,size=%d)".formatted(page, size),
+                () -> restClient.get()
+                        .uri(uriBuilder -> uriBuilder
+                                .path("/spells/search")
+                                .queryParam("source", searchSources)
+                                .queryParam("page", page)
+                                .queryParam("size", size)
+                                .build())
                         .retrieve()
                         .body(SPELL_LIST_TYPE)
         );
     }
 
-    public TtgSpellDetail fetchSpellDetail(String slug) {
+    public TtgV2SpellDetail fetchSpellDetail(String slug) {
         return executeWith429Retry(
-                "ttg.fetchSpellDetail(slug=%s)".formatted(slug),
-                () -> restClient.post()
+                "ttg.v2.fetchSpellDetail(slug=%s)".formatted(slug),
+                () -> restClient.get()
                         .uri("/spells/{slug}", slug)
                         .retrieve()
-                        .body(TtgSpellDetail.class)
+                        .body(TtgV2SpellDetail.class)
         );
     }
 
@@ -87,7 +92,6 @@ public class TtgApiClient {
                 throw e;
             }
         }
-        // Should be unreachable because the loop either returns or throws.
         throw new IllegalStateException("Retry loop exhausted: " + operation);
     }
 
@@ -103,7 +107,6 @@ public class TtgApiClient {
         if (retryAfter.isEmpty()) {
             return 0L;
         }
-        // Retry-After can be either seconds (integer) or an HTTP date.
         try {
             long seconds = Long.parseLong(retryAfter);
             return Math.max(0L, seconds * 1000L);
