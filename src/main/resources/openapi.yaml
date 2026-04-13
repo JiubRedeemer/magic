@@ -8,6 +8,8 @@ info:
     - DnD 5e (TTG 5e14): `/spells/import`
     - DnD 2024 (TTG Club v2): `/spells/import-2024`
     - DnD 2024 listing only: `/spells/dnd2024`
+    - DnD 2024 sanitize TTG markup in DB: `/spells/dnd2024/sanitize-descriptions` (sync; may time out on large DBs)
+    - Same, async (recommended): `/spells/dnd2024/sanitize-descriptions/async` then `GET .../sanitize-descriptions/jobs/{jobId}`
     - Unified listing for integrations (legacy-compatible): `/spells`
   version: 0.0.1-SNAPSHOT
 
@@ -115,6 +117,69 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SpellDto'
+
+  /spells/dnd2024/sanitize-descriptions:
+    post:
+      summary: Sanitize TTG markup in DnD 2024 spell descriptions (DB)
+      operationId: sanitizeDnd2024SpellDescriptions
+      tags:
+        - Spells
+      description: |
+        Removes `{@b ...}`, `{@glossary ...}`, `{@br}`, and similar TTG Club tags from stored text.
+        Updates `spell_24.description`, and `spell_24_ai.description` / `spell_24_ai.eng_description`.
+        Processes in batches; for very large catalogs clients or proxies may still time out — use the `/async` variant.
+      responses:
+        '200':
+          description: Row counts processed and rows actually updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellDescriptionSanitizeResult'
+
+  /spells/dnd2024/sanitize-descriptions/async:
+    post:
+      summary: Start DnD 2024 description sanitize in the background
+      operationId: sanitizeDnd2024SpellDescriptionsAsync
+      tags:
+        - Spells
+      description: |
+        Returns immediately with a `jobId`. Poll `GET /spells/dnd2024/sanitize-descriptions/jobs/{jobId}` until `status` is `DONE` or `FAILED`.
+      responses:
+        '202':
+          description: Job accepted
+          headers:
+            Location:
+              description: URL path to poll job status (relative to API base)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellDescriptionSanitizeJobSubmission'
+
+  /spells/dnd2024/sanitize-descriptions/jobs/{jobId}:
+    get:
+      summary: DnD 2024 sanitize job status
+      operationId: getDnd2024SanitizeJob
+      tags:
+        - Spells
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: |
+            While running, `status` is `RUNNING`. When finished, `status` is `DONE` with `result`, or `FAILED` with `error`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellDescriptionSanitizeJobResponse'
+        '404':
+          description: Unknown job id
 
   /spells/import:
     post:
@@ -896,3 +961,50 @@ components:
         failed:
           type: integer
           description: Number of failed imports
+
+    SpellDescriptionSanitizeResult:
+      type: object
+      required:
+        - totalSpell24
+        - changedSpell24
+        - totalSpell24Ai
+        - changedSpell24Ai
+      properties:
+        totalSpell24:
+          type: integer
+          description: Rows read from spell_24
+        changedSpell24:
+          type: integer
+          description: Rows in spell_24 with description updated
+        totalSpell24Ai:
+          type: integer
+          description: Rows read from spell_24_ai
+        changedSpell24Ai:
+          type: integer
+          description: Rows in spell_24_ai with at least one description field updated
+
+    SpellDescriptionSanitizeJobSubmission:
+      type: object
+      required:
+        - jobId
+      properties:
+        jobId:
+          type: string
+          format: uuid
+
+    SpellDescriptionSanitizeJobResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - RUNNING
+            - DONE
+            - FAILED
+        result:
+          $ref: '#/components/schemas/SpellDescriptionSanitizeResult'
+        error:
+          type: string
+          nullable: true

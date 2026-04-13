@@ -1,11 +1,16 @@
 package com.jiubredeemer.magic.controller;
 
+import com.jiubredeemer.magic.dto.spellbook.SpellDescriptionSanitizeJobResponse;
+import com.jiubredeemer.magic.dto.spellbook.SpellDescriptionSanitizeResult;
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
+import com.jiubredeemer.magic.service.Spell24DescriptionSanitizeService;
+import com.jiubredeemer.magic.service.SpellDescriptionSanitizeJobService;
 import com.jiubredeemer.magic.service.SpellImageGenerationService;
 import com.jiubredeemer.magic.service.SpellService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -13,6 +18,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +42,12 @@ class SpellControllerTest {
 
     @MockitoBean
     SpellImageGenerationService spellImageGenerationService;
+
+    @MockitoBean
+    Spell24DescriptionSanitizeService spell24DescriptionSanitizeService;
+
+    @MockitoBean
+    SpellDescriptionSanitizeJobService spellDescriptionSanitizeJobService;
 
     private static SpellDto spellDto(UUID id) {
         SpellDto dto = new SpellDto();
@@ -115,6 +127,49 @@ class SpellControllerTest {
                 .andExpect(jsonPath("$[0].name.en").value("Fireball"));
 
         verify(spellService).list2024();
+    }
+
+    @Test
+    void sanitizeDnd2024Descriptions_returnsResult() throws Exception {
+        var result = new SpellDescriptionSanitizeResult(10, 2, 10, 1);
+        when(spell24DescriptionSanitizeService.sanitizeAll()).thenReturn(result);
+
+        mockMvc.perform(post("/api/spells/dnd2024/sanitize-descriptions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSpell24").value(10))
+                .andExpect(jsonPath("$.changedSpell24").value(2))
+                .andExpect(jsonPath("$.totalSpell24Ai").value(10))
+                .andExpect(jsonPath("$.changedSpell24Ai").value(1));
+
+        verify(spell24DescriptionSanitizeService).sanitizeAll();
+    }
+
+    @Test
+    void sanitizeDnd2024DescriptionsAsync_returns202WithJobId() throws Exception {
+        UUID jobId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        when(spellDescriptionSanitizeJobService.submit()).thenReturn(jobId);
+
+        mockMvc.perform(post("/api/spells/dnd2024/sanitize-descriptions/async"))
+                .andExpect(status().isAccepted())
+                .andExpect(header().string(
+                        HttpHeaders.LOCATION,
+                        "/api/spells/dnd2024/sanitize-descriptions/jobs/00000000-0000-0000-0000-000000000001"))
+                .andExpect(jsonPath("$.jobId").value("00000000-0000-0000-0000-000000000001"));
+
+        verify(spellDescriptionSanitizeJobService).submit();
+    }
+
+    @Test
+    void getSanitizeJob_returnsStatus() throws Exception {
+        UUID jobId = UUID.randomUUID();
+        when(spellDescriptionSanitizeJobService.getJob(jobId))
+                .thenReturn(Optional.of(new SpellDescriptionSanitizeJobResponse("RUNNING", null, null)));
+
+        mockMvc.perform(get("/api/spells/dnd2024/sanitize-descriptions/jobs/{jobId}", jobId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("RUNNING"));
+
+        verify(spellDescriptionSanitizeJobService).getJob(jobId);
     }
 
     @Test

@@ -1,8 +1,9 @@
 package com.jiubredeemer.magic.repository;
 
+import com.jiubredeemer.magic.entity.Spell;
 import com.jiubredeemer.magic.entity.Spell24;
 import com.jiubredeemer.magic.entity.Spell24Ai;
-import io.micrometer.observation.ObservationFilter;
+import com.jiubredeemer.magic.entity.SpellAi;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,8 +43,8 @@ public interface Spell24AiRepository extends JpaRepository<Spell24Ai, UUID> {
 
     @Query(value = """
             SELECT s.*
-            FROM magic.spell_24_ai s WHERE s.img_url is null
+            FROM magic.spell_ai s WHERE s.img_url is null
             LIMIT 1
             """, nativeQuery = true)
-    Optional<Spell24> findOneFromSpellMissingImageInAi();
+    Optional<SpellAi> findOneFromSpellMissingImageInAi();
 }

@@ -3,8 +3,12 @@ package com.jiubredeemer.magic.service;
 import com.jiubredeemer.magic.dto.image.ImageGenerationResultDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
 import com.jiubredeemer.magic.entity.Spell;
+import com.jiubredeemer.magic.entity.Spell24;
+import com.jiubredeemer.magic.entity.Spell24Ai;
 import com.jiubredeemer.magic.entity.SpellAi;
 import com.jiubredeemer.magic.mapper.SpellDtoMapper;
+import com.jiubredeemer.magic.repository.Spell24AiRepository;
+import com.jiubredeemer.magic.repository.Spell24Repository;
 import com.jiubredeemer.magic.repository.SpellAiRepository;
 import com.jiubredeemer.magic.repository.SpellRepository;
 import org.slf4j.Logger;
@@ -32,8 +36,10 @@ public class SpellImageGenerationService {
 
     private final SpellAiRepository spellAiRepository;
     private final SpellRepository spellRepository;
+    private final Spell24Repository spell24Repository;
     private final SpellDtoMapper spellDtoMapper;
     private final WebClient webClient;
+    private final Spell24AiRepository spell24AiRepository;
 
     @Value("${magic.images.sd-txt2img-url:http://127.0.0.1:7860/sdapi/v1/txt2img}")
     private String sdTxt2imgUrl;
@@ -64,12 +70,15 @@ public class SpellImageGenerationService {
 
     public SpellImageGenerationService(SpellAiRepository spellAiRepository,
                                        SpellRepository spellRepository,
+                                       Spell24Repository spell24Repository,
                                        SpellDtoMapper spellDtoMapper,
-                                       WebClient webClient) {
+                                       WebClient webClient, Spell24AiRepository spell24AiRepository) {
         this.spellAiRepository = spellAiRepository;
         this.spellDtoMapper = spellDtoMapper;
         this.spellRepository = spellRepository;
+        this.spell24Repository = spell24Repository;
         this.webClient = webClient;
+        this.spell24AiRepository = spell24AiRepository;
     }
 
     /**
@@ -78,7 +87,11 @@ public class SpellImageGenerationService {
      */
     public SpellDto generateAndSaveImageForSpellAi(UUID id) {
         SpellAi spellAi = spellAiRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "spell_ai not found: " + id));
+                .orElse(null);
+        if (spellAi == null) {
+            log.error("Not found spell24ai with id: {}", id);
+            return null;
+        }
         try {
             String nameEng = spellNameForPrompt(spellAi);
             String descriptionForPrompt = descriptionForImagePrompt(spellAi);
@@ -91,12 +104,18 @@ public class SpellImageGenerationService {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .bodyValue(Map.of(
                             "prompt", prompt,
-                            "steps", steps,
-                            "width", width,
-                            "height", height,
-                            "seed", seed,
-                            "sampler_name", samplerName,
-                            "scheduler", scheduler))
+                            "steps", 28,
+                            "width", 512,
+                            "height", 512,
+                            "seed", -1,
+                            "sampler_name", "euler",
+                            "scheduler", "Simple",
+                            "cfg_scale", 1.0,
+                            "distilled_cfg_scale", 3.5,
+                            "override_settings", Map.of(
+                                    "sd_model_checkpoint", "flux_dev"
+                            )
+                    ))
                     .retrieve()
                     .bodyToMono(ImageGenerationResultDto.class)
                     .block();
@@ -126,14 +145,29 @@ public class SpellImageGenerationService {
             spellAi.setImgUrl(filename);
             SpellAi saved = spellAiRepository.save(spellAi);
 
-            Spell spell = new Spell();
-            BeanUtils.copyProperties(saved, spell);
+            Spell spell24 = spellRepository.findById(id)
+                    .orElse(null);
+            if (spell24 == null) {
+                log.error("Not found spell24 with id: {}", id);
+                return null;
+            }
+            spell24.setImgUrl(filename);
+            spellRepository.save(spell24);
 
-            Spell spell1 = spellRepository.findById(id).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "spell_ai not found: " + id));
-            spell1.setImgUrl(filename);
-            spellRepository.save(spell1);
+//            String slug24 = saved.getTtgSlug();
+//            String slugSpell = spell24SlugToSpellSlug(slug24);
+//            Spell spell = spellRepository.findByTtgSlug(slugSpell).orElse(null);
+//            if (spell != null) {
+//                spell.setImgUrl(filename);
+//                spellRepository.save(spell);
+//            } else {
+//                log.error("Not found spell with slug: {}", slug24);
+//            }
 
-            return spellDtoMapper.toDto(spell);
+            Spell result = new Spell();
+            BeanUtils.copyProperties(saved, result);
+            result.setImgUrl(filename);
+            return spellDtoMapper.toDto(result);
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception ex) {
@@ -167,5 +201,14 @@ public class SpellImageGenerationService {
             return m.get("rus");
         }
         return m.values().iterator().next();
+    }
+
+    private static String spell24SlugToSpellSlug(String spell24Slug) {
+        if (spell24Slug == null || spell24Slug.isBlank()) {
+            return "";
+        }
+        String withoutSource = spell24Slug.replaceFirst("-[a-z0-9]+$", "");
+        String possessiveAdjusted = withoutSource.replaceAll("-s-", "'s-");
+        return possessiveAdjusted.replace('-', '_');
     }
 }

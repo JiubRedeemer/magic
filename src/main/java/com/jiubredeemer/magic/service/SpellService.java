@@ -1,6 +1,7 @@
 package com.jiubredeemer.magic.service;
 
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
+import com.jiubredeemer.magic.entity.Spell24;
 import com.jiubredeemer.magic.entity.Spell24Ai;
 import com.jiubredeemer.magic.entity.SpellAi;
 import com.jiubredeemer.magic.entity.Spell;
@@ -130,6 +131,10 @@ public class SpellService {
     }
 
     public  Optional<SpellDto> getOneFromSpellMissingImageInAi() {
-        return spell24AiRepository.findOneFromSpellMissingImageInAi().map(spellDtoMapper::toDto);
+        return spell24AiRepository.findOneFromSpellMissingImageInAi().map(spell24Ai -> {
+            Spell view = new Spell();
+            BeanUtils.copyProperties(spell24Ai, view);
+            return spellDtoMapper.toDto(view);
+        });
     }
 }

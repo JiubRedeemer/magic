@@ -3,7 +3,7 @@ spring:
     name: magic
   datasource:
     password: pd
-    url: jdbc:postgresql://localhost:5432/magic
+    url: jdbc:postgresql://80.93.62.19:5432/magic
     username: pd
   jpa:
     default-schema: magic

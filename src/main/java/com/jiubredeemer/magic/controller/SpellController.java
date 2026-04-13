@@ -1,9 +1,16 @@
 package com.jiubredeemer.magic.controller;
 
+import com.jiubredeemer.magic.dto.spellbook.SpellDescriptionSanitizeJobResponse;
+import com.jiubredeemer.magic.dto.spellbook.SpellDescriptionSanitizeJobSubmission;
+import com.jiubredeemer.magic.dto.spellbook.SpellDescriptionSanitizeResult;
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
+import com.jiubredeemer.magic.service.Spell24DescriptionSanitizeService;
+import com.jiubredeemer.magic.service.SpellDescriptionSanitizeJobService;
 import com.jiubredeemer.magic.service.SpellImageGenerationService;
 import com.jiubredeemer.magic.service.SpellService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +23,8 @@ import java.util.UUID;
 public class SpellController {
     private final SpellService spellService;
     private final SpellImageGenerationService spellImageGenerationService;
+    private final Spell24DescriptionSanitizeService spell24DescriptionSanitizeService;
+    private final SpellDescriptionSanitizeJobService spellDescriptionSanitizeJobService;
 
     @PostMapping
     public SpellDto create(@RequestBody SpellDto dto) {
@@ -43,6 +52,34 @@ public class SpellController {
         return spellService.list2024();
     }
 
+    /**
+     * Strips TTG Club inline markup from {@code spell_24.description} and {@code spell_24_ai} description fields.
+     * May exceed HTTP timeouts on large catalogs; prefer `POST .../sanitize-descriptions/async`.
+     */
+    @PostMapping("/dnd2024/sanitize-descriptions")
+    public SpellDescriptionSanitizeResult sanitizeDnd2024Descriptions() {
+        return spell24DescriptionSanitizeService.sanitizeAll();
+    }
+
+    /**
+     * Starts sanitize in a background thread and returns immediately with a job id. Poll
+     * {@code GET .../sanitize-descriptions/jobs/{jobId}} until status is DONE or FAILED.
+     */
+    @PostMapping("/dnd2024/sanitize-descriptions/async")
+    public ResponseEntity<SpellDescriptionSanitizeJobSubmission> sanitizeDnd2024DescriptionsAsync() {
+        UUID jobId = spellDescriptionSanitizeJobService.submit();
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .header(HttpHeaders.LOCATION, "/api/spells/dnd2024/sanitize-descriptions/jobs/" + jobId)
+                .body(new SpellDescriptionSanitizeJobSubmission(jobId));
+    }
+
+    @GetMapping("/dnd2024/sanitize-descriptions/jobs/{jobId}")
+    public ResponseEntity<SpellDescriptionSanitizeJobResponse> getSanitizeJob(@PathVariable UUID jobId) {
+        return spellDescriptionSanitizeJobService.getJob(jobId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/{id}")
     public SpellDto update(@PathVariable UUID id, @RequestBody SpellDto dto) {
         return spellService.update(id, dto);
@@ -68,7 +105,7 @@ public class SpellController {
 
     @GetMapping("/from-spell/missing-image-in-ai")
     public ResponseEntity<SpellDto> getOneFromSpellMissingImageInAi() {
-        return spellService.getOneFromSpellMissingInAi()
+        return spellService.getOneFromSpellMissingImageInAi()
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
