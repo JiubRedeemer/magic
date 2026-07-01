@@ -1,9 +1,11 @@
 package com.jiubredeemer.magic.service;
 
+import com.jiubredeemer.magic.dto.spellbook.CharacterResourceDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellBookItemDto;
 import com.jiubredeemer.magic.dto.spellbook.SpellCellDto;
 import com.jiubredeemer.magic.entity.*;
+import com.jiubredeemer.magic.mapper.CharacterResourceDtoMapper;
 import com.jiubredeemer.magic.mapper.SpellBookDtoMapper;
 import com.jiubredeemer.magic.mapper.SpellBookItemDtoMapper;
 import com.jiubredeemer.magic.mapper.SpellCellDtoMapper;
@@ -33,6 +35,8 @@ public class SpellBookService {
     private final SpellCellDtoMapper spellCellDtoMapper;
     private final SpellStorageService spellStorageService;
     private final SpellDtoMapper spellDtoMapper;
+    private final CharacterResourceRepository characterResourceRepository;
+    private final CharacterResourceDtoMapper characterResourceDtoMapper;
 
     public SpellBookDto create(SpellBookDto dto) {
         SpellBook entity = spellBookDtoMapper.toEntity(dto);
@@ -139,6 +143,15 @@ public class SpellBookService {
                 spellCellRepository.save(cell);
             }
         }
+        List<CharacterResource> resources = characterResourceRepository.findAllBySpellBookId(spellBookId);
+        for (CharacterResource r : resources) {
+            boolean shouldRefill = r.getRefillRestType() == restType
+                    || (restType == ChargesRefillEnum.LONG_REST && r.getRefillRestType() == ChargesRefillEnum.SHORT_REST);
+            if (shouldRefill && r.getMaxCount() != null) {
+                r.setCurrentCount(r.getMaxCount());
+                characterResourceRepository.save(r);
+            }
+        }
         return buildSpellBookDto(spellBook);
     }
 
@@ -166,6 +179,11 @@ public class SpellBookService {
                 )
         );
         dto.setSpellCells(cellMap);
+        List<CharacterResourceDto> resources = characterResourceRepository
+                .findAllBySpellBookId(spellBook.getId()).stream()
+                .map(characterResourceDtoMapper::toDto)
+                .toList();
+        dto.setCustomResources(resources);
         return dto;
     }
 

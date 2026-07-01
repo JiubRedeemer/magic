@@ -17,4 +17,5 @@ public class SpellBookDto {
     private LocalDateTime deletedAt;
     private List<SpellBookItemDto> spells;
     private Map<Long, SpellCellDto> spellCells;
+    private List<CharacterResourceDto> customResources;
 }

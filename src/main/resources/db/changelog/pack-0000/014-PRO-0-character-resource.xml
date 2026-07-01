@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+">
+    <changeSet id="014-character-resource" author="jiubredeemer">
+        <createTable tableName="character_resource" schemaName="magic">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="spell_book_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="icon" type="text"/>
+            <column name="max_count" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_count" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refill_rest_type" type="text"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableSchemaName="magic"
+                baseTableName="character_resource"
+                baseColumnNames="spell_book_id"
+                referencedTableSchemaName="magic"
+                referencedTableName="spell_book"
+                referencedColumnNames="id"
+                constraintName="fk_character_resource_spell_book"/>
+    </changeSet>
+</databaseChangeLog>

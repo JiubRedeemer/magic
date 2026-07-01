@@ -20,4 +20,5 @@
     <include file="011-PRO-0_add_alias_to_srd.sql" relativeToChangelogFile="true"/>
     <include file="012-PRO-0-spell-storage-split.xml" relativeToChangelogFile="true"/>
     <include file="013-PRO-0-spell24-name-locale-keys.xml" relativeToChangelogFile="true"/>
+    <include file="014-PRO-0-character-resource.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
