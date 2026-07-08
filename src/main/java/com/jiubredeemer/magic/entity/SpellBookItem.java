@@ -18,5 +18,6 @@ public class SpellBookItem {
     private UUID spellBookId;
     private UUID spellId;
     private Boolean inUse;
+    private Boolean alwaysPrepared;
 
 }

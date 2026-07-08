@@ -120,6 +120,14 @@ public class SpellBookService {
         return enrichSpellBookItemDto(saved);
     }
 
+    public SpellBookItemDto setSpellAlwaysPrepared(UUID spellBookId, UUID spellId, boolean alwaysPrepared) {
+        SpellBookItem item = spellBookItemRepository.findBySpellBookIdAndSpellId(spellBookId, spellId)
+                .orElseThrow();
+        item.setAlwaysPrepared(alwaysPrepared);
+        SpellBookItem saved = spellBookItemRepository.save(item);
+        return enrichSpellBookItemDto(saved);
+    }
+
     public SpellCellDto createSpellCellForBook(UUID spellBookId, SpellCellDto dto) {
         spellBookRepository.findById(spellBookId).orElseThrow();
         SpellCell entity = spellCellDtoMapper.toEntity(dto);

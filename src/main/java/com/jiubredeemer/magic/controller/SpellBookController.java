@@ -73,6 +73,15 @@ public class SpellBookController {
         return spellBookService.setSpellInUse(spellBookId, spellId, inUse);
     }
 
+    @PatchMapping("/{spellBookId}/spells/{spellId}/always-prepared")
+    public SpellBookItemDto setSpellAlwaysPrepared(
+            @PathVariable UUID spellBookId,
+            @PathVariable UUID spellId,
+            @RequestParam boolean alwaysPrepared
+    ) {
+        return spellBookService.setSpellAlwaysPrepared(spellBookId, spellId, alwaysPrepared);
+    }
+
     @PostMapping("/{spellBookId}/spell-cells")
     public SpellCellDto createSpellCell(
             @PathVariable UUID spellBookId,
