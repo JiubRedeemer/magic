@@ -3,6 +3,7 @@ package com.jiubredeemer.magic.mapper;
 import com.jiubredeemer.magic.dto.spellbook.SpellDto;
 import com.jiubredeemer.magic.entity.Spell;
 import com.jiubredeemer.magic.entity.Spell24;
+import com.jiubredeemer.magic.entity.SpellBundled;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,22 @@ public class SpellDtoMapper {
 
     public List<SpellDto> toDto(Iterable<Spell> entities) {
         return StreamSupport.stream(entities.spliterator(), false).map(this::toDto).toList();
+    }
+
+    public SpellDto toDto(SpellBundled entity) {
+        final SpellDto model = new SpellDto();
+        BeanUtils.copyProperties(entity, model);
+        return model;
+    }
+
+    public List<SpellDto> toDtoFromBundled(List<SpellBundled> entities) {
+        return entities.stream().map(this::toDto).toList();
+    }
+
+    public SpellBundled toBundled(SpellDto model) {
+        final SpellBundled entity = new SpellBundled();
+        BeanUtils.copyProperties(model, entity);
+        return entity;
     }
 
     public Spell toEntity(SpellDto model) {

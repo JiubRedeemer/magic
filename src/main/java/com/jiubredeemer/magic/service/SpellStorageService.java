@@ -4,10 +4,12 @@ import com.jiubredeemer.magic.entity.Spell;
 import com.jiubredeemer.magic.entity.Spell24;
 import com.jiubredeemer.magic.entity.Spell24Ai;
 import com.jiubredeemer.magic.entity.SpellAi;
+import com.jiubredeemer.magic.entity.SpellBundled;
 import com.jiubredeemer.magic.entity.SpellUser;
 import com.jiubredeemer.magic.repository.Spell24AiRepository;
 import com.jiubredeemer.magic.repository.Spell24Repository;
 import com.jiubredeemer.magic.repository.SpellAiRepository;
+import com.jiubredeemer.magic.repository.SpellBundledRepository;
 import com.jiubredeemer.magic.repository.SpellRepository;
 import com.jiubredeemer.magic.repository.SpellUserRepository;
 import org.springframework.beans.BeanUtils;
@@ -27,6 +29,7 @@ public class SpellStorageService {
     private final SpellUserRepository spellUserRepository;
     private final Spell24Repository spell24Repository;
     private final Spell24AiRepository spell24AiRepository;
+    private final SpellBundledRepository spellBundledRepository;
     private final boolean useAiTable;
 
     public SpellStorageService(SpellRepository spellRepository,
@@ -34,12 +37,14 @@ public class SpellStorageService {
                                SpellUserRepository spellUserRepository,
                                Spell24Repository spell24Repository,
                                Spell24AiRepository spell24AiRepository,
+                               SpellBundledRepository spellBundledRepository,
                                @Value("${magic.spells.use-ai-table:false}") boolean useAiTable) {
         this.spellRepository = spellRepository;
         this.spellAiRepository = spellAiRepository;
         this.spellUserRepository = spellUserRepository;
         this.spell24Repository = spell24Repository;
         this.spell24AiRepository = spell24AiRepository;
+        this.spellBundledRepository = spellBundledRepository;
         this.useAiTable = useAiTable;
     }
 
@@ -91,7 +96,9 @@ public class SpellStorageService {
         if (base24.isPresent()) {
             return Optional.of(toSpell(base24.get()));
         }
-        return Optional.empty();
+        // Заклинания, добавленные в книгу из бандла, живут в spell_bundled.
+        Optional<SpellBundled> bundled = spellBundledRepository.findById(id);
+        return bundled.map(this::toSpell);
     }
 
     public List<Spell> findAll() {
@@ -135,6 +142,10 @@ public class SpellStorageService {
         }
         if (spell24Repository.existsById(id)) {
             spell24Repository.deleteById(id);
+            return;
+        }
+        if (spellBundledRepository.existsById(id)) {
+            spellBundledRepository.deleteById(id);
             return;
         }
         spellRepository.deleteById(id);
@@ -191,6 +202,17 @@ public class SpellStorageService {
                 .toList();
     }
 
+    /** Пользовательские заклинания (spells_user) — включаются в комнатный каталог как и раньше. */
+    public List<Spell> findAllUserSpells() {
+        return spellUserRepository.findAll().stream().map(this::toSpell).toList();
+    }
+
+    public List<Spell> findUserSpellsByClass(String code, String codePrefix, String codeSuffix, String codeMiddle) {
+        return spellUserRepository.findBySpellClass(code, codePrefix, codeSuffix, codeMiddle).stream()
+                .map(this::toSpell)
+                .toList();
+    }
+
     private static boolean isUserSpell(Spell spell) {
         return spell.getTtgSlug() == null || spell.getTtgSlug().isBlank();
     }
@@ -214,6 +236,12 @@ public class SpellStorageService {
     }
 
     private Spell toSpell(Spell24Ai source) {
+        Spell target = new Spell();
+        BeanUtils.copyProperties(source, target);
+        return target;
+    }
+
+    private Spell toSpell(SpellBundled source) {
         Spell target = new Spell();
         BeanUtils.copyProperties(source, target);
         return target;

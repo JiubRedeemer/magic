@@ -35,6 +35,8 @@ class SpellStorageServiceTest {
     Spell24Repository spell24Repository;
     @Mock
     Spell24AiRepository spell24AiRepository;
+    @Mock
+    com.jiubredeemer.magic.repository.SpellBundledRepository spellBundledRepository;
 
     SpellStorageService withAi;
 
@@ -46,6 +48,7 @@ class SpellStorageServiceTest {
                 spellUserRepository,
                 spell24Repository,
                 spell24AiRepository,
+                spellBundledRepository,
                 true
         );
     }
